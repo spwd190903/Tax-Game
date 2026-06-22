@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คลังเกมความรู้สุดสนุก 🎉</title>
+    <style>
+        body {
+            font-family: 'ChulaCharas', 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-align: center;
+        }
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .game-btn {
+            background-color: #ffffff;
+            color: #4a5568;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+        /* เอฟเฟกต์เวลาเอาเมาส์ไปชี้ หรือกดบนมือถือ */
+        .game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.15);
+            background-color: #4f46e5;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎮 เลือกเกมที่ต้องการเล่นได้เลย! 🎮</h1>
+
+    <div class="menu-container">
+        <a href="game1.html" class="game-btn">🎯 เกมที่ 1: ตะลุยโลกภาษี (Tax Game)</a>
+        <a href="game2.html" class="game-btn">🧪 เกมที่ 2: เกมตอบคำถามวิทยาศาสตร์</a>
+        <a href="game3.html" class="game-btn">📚 เกมที่ 3: เกมทดสอบภาษาอังกฤษ</a>
+    </div>
+
+</body>
+</html>
