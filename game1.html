@@ -31,78 +31,186 @@
             100% { transform: scale(1); opacity: 1; }
         }
         .animate-pop { animation: pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .animate-shake { animation: shake 0.35s ease-in-out; }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
+    <!-- กล่องหลักสำหรับ React -->
     <div id="root" class="w-full max-w-xl"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const quizData = [
+        const allQuizData = [
             {
                 question: "นาย A เป็นพนักงานบริษัทเอกชน ได้รับ 'เงินเดือน' และ 'โบนัส' สิ้นปี ถือเป็นเงินได้พึงประเมินประเภทใด?",
                 options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 8 (ม.40(8))"],
                 answer: "ประเภทที่ 1 (ม.40(1))",
-                explanation: "เงินได้ประเภทที่ 1 คือ เงินได้จากการจ้างแรงงาน เช่น เงินเดือน ค่าจ้าง โบนัส เบี้ยเลี้ยง บำนาญ"
+                explanation: "เงินได้ประเภทที่ 1 คือ เงินได้จากการจ้างแรงงาน เช่น เงินเดือน ค่าจ้าง โบนัส เบี้ยเลี้ยง บำนาญ มีลักษณะเป็นพนักงานประจำที่มีข้อตกลงการจ้างงาน"
             },
             {
                 question: "นางสาว B เป็นตัวแทนขายประกันชีวิต ได้รับ 'ค่านายหน้า' จากยอดขาย ถือเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))"],
                 answer: "ประเภทที่ 2 (ม.40(2))",
-                explanation: "เงินได้ประเภทที่ 2 คือ เงินได้เนื่องจากหน้าที่หรือตำแหน่งงานที่ทำ หรือจากการรับทำงานให้ เช่น ค่านายหน้า"
+                explanation: "เงินได้ประเภทที่ 2 คือ เงินได้เนื่องจากหน้าที่หรือตำแหน่งงานที่ทำ หรือจากการรับทำงานให้ เช่น ค่านายหน้า ค่าธรรมเนียม เบี้ยประชุม โดยไม่มีความสัมพันธ์แบบจ้างแรงงานถาวร"
+            },
+            {
+                question: "นักแต่งเพลงและนักเขียน ได้รับ 'ค่าลิขสิทธิ์' และค่าลิขสิทธิ์ผลงานเพลง ถือเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 7 (ม.40(7))"],
+                answer: "ประเภทที่ 3 (ม.40(3))",
+                explanation: "เงินได้ประเภทที่ 3 คือ ค่าแห่งกู๊ดวิลล์ ค่าลิขสิทธิ์ หรือสิทธิอย่างอื่น เงินปี หรือเงินได้มีลักษณะเป็นเงินรายปีอันได้มาจากพินัยกรรมหรือนิติกรรมอื่น"
             },
             {
                 question: "นาย C นำเงินไปลงทุนและฝากธนาคาร จนได้รับ 'ดอกเบี้ยเงินฝาก' และ 'เงินปันผลจากหุ้น' ถือเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 8 (ม.40(8))"],
                 answer: "ประเภทที่ 4 (ม.40(4))",
-                explanation: "เงินได้ประเภทที่ 4 คือ เงินได้จากการลงทุนในสินทรัพย์ทางการเงิน เช่น ดอกเบี้ย และเงินปันผล"
+                explanation: "เงินได้ประเภทที่ 4 คือ เงินได้จากการลงทุนในสินทรัพย์ทางการเงิน (Capital) เช่น ดอกเบี้ยเงินฝาก เงินปันผล ส่วนแบ่งกำไร และกำไรจากสินทรัพย์ดิจิทัล"
+            },
+            {
+                question: "นาง D มีตึกแถวว่าง 1 คูหา จึงเปิดให้ผู้สนใจมาเช่าทำร้านค้า ได้รับ 'ค่าเช่าตึก' ทุกเดือน ถือเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 5 (ม.40(5))",
+                explanation: "เงินได้ประเภทที่ 5 คือ เงินได้จากการให้เช่าทรัพย์สินทุกประเภท การผิดสัญญาเช่าซื้อ หรือการผิดสัญญาซื้อขายเงินผ่อน"
+            },
+            {
+                question: "ข้อใดจัดเป็นเงินได้ประเภทวิชาชีพอิสระ 'ประเภทที่ 6 (ม.40(6))' ?",
+                options: ["แม่ค้าขายของชำและร้านสะดวกซื้อ", "วิศวกรอิสระ แพทย์ และทนายความที่มีใบประกอบวิชาชีพ", "ผู้รับเหมาก่อสร้างและจัดหาสัมภาระ", "ดารานักแสดงและนักร้อง"],
+                answer: "วิศวกรอิสระ แพทย์ และทนายความที่มีใบประกอบวิชาชีพ",
+                explanation: "เงินได้ประเภทที่ 6 คือ เงินได้จากวิชาชีพอิสระ ได้แก่ วิชากฎหมาย การประกอบโรคศิลปะ (แพทย์) วิศวกรรม สถาปัตยกรรม การบัญชี และประณีตศิลปกรรม"
+            },
+            {
+                question: "นาย E รับเหมาก่อสร้างสะพาน โดยที่ตนเอง 'ต้องเป็นผู้จัดหาปูน หิน ดิน ทราย และเหล็กเส้นเองทั้งหมด' จัดเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 7 (ม.40(7))",
+                explanation: "เงินได้ประเภทที่ 7 คือ เงินได้จากการรับเหมาที่ผู้รับเหมาต้องจัดหาสัมภาระในส่วนสำคัญนอกจากเครื่องมือ (เช่น อิฐ หิน ปูน ทราย เหล็ก) หากผู้ว่าจ้างจัดหาของให้เองทั้งหมดจะไปเข้าประเภทที่ 2"
+            },
+            {
+                question: "เจ้าของร้านอาหาร บุคคลทั่วไปที่ขายเสื้อผ้าออนไลน์ หรือเกษตรกรขายผลผลิต จัดเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 8 (ม.40(8))",
+                explanation: "เงินได้ประเภทที่ 8 คือ เงินได้จากการธุรกิจ การพาณิชย์ การเกษตร การอุตสาหกรรม การขนส่ง หรือเงินได้อื่นๆ ที่ไม่เข้าพวกในประเภทที่ 1 ถึงประเภทที่ 7"
+            },
+            {
+                question: "ดารา นักแสดง นักร้อง หรืออินฟลูเอนเซอร์ที่รับงานรีวิวสินค้าเป็นครั้งคราว ได้รับเงินได้พึงประเมินประเภทใด?",
+                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 8 (ม.40(8))",
+                explanation: "ตามกฎหมายภาษีของไทย รายได้ของนักแสดงสาธารณะ (ดารา นักร้อง นักแสดง นักกีฬาอาชีพ) ถูกกำหนดให้เป็นเงินได้ประเภทที่ 8 (ม.40(8))"
+            },
+            {
+                question: "ข้อใดคือการแยกแยะระหว่างเงินได้ประเภทที่ 1 และประเภทที่ 2 ได้ถูกต้องที่สุด?",
+                options: [
+                    "ประเภท 1 หักค่าใช้จ่ายไม่ได้ ส่วนประเภท 2 หักได้ไม่จำกัด",
+                    "ประเภท 1 มีความสัมพันธ์แบบนายจ้าง-ลูกจ้าง (คุมเวลา) ส่วนประเภท 2 รับจ้างอิสระ เน้นผลสำเร็จของงาน",
+                    "ประเภท 1 ได้รับเป็นเงินสดเท่านั้น ส่วนประเภท 2 รับเป็นหุ้น",
+                    "ทั้งสองประเภทไม่มีความแตกต่างกันเลยในทางกฎหมาย"
+                ],
+                answer: "ประเภท 1 มีความสัมพันธ์แบบนายจ้าง-ลูกจ้าง (คุมเวลา) ส่วนประเภท 2 รับจ้างอิสระ เน้นผลสำเร็จของงาน",
+                explanation: "เงินได้ประเภทที่ 1 (จ้างแรงงาน) จะมีสัญญาจ้างและสวัสดิการพนักงาน ส่วนประเภทที่ 2 (รับทำงานให้) จะเป็นการจ้างทำของหรือทำงานชั่วคราว ไม่มีสถานะเป็นลูกจ้างประจำ"
+            },
+            {
+                question: "เงินได้ประเภทใดต่อไปนี้ เมื่อนำมารวมกันแล้ว 'หักค่าใช้จ่ายแบบเหมาได้ 50% แต่สูงสุดรวมกันต้องไม่เกิน 100,000 บาท'?",
+                options: ["ประเภทที่ 1 และ 2", "ประเภทที่ 3 และ 4", "ประเภทที่ 5 อย่างเดียว", "ประเภทที่ 8 ทั้งหมด"],
+                answer: "ประเภทที่ 1 และ 2",
+                explanation: "ตามกฎหมาย ให้นำเงินได้ประเภทที่ 1 (เช่น เงินเดือน) และประเภทที่ 2 (เช่น ค่านายหน้า/รับจ้างทั่วไป) มารวมกันก่อน แล้วจึงหักค่าใช้จ่ายแบบเหมาได้ 50% แต่รวมกันต้องไม่เกิน 100,000 บาท"
+            },
+            {
+                question: "นาย F เทรดคริปโทเคอร์เรนซี (Cryptocurrency) และ 'ได้กำไรจากการขาย' กำไรส่วนนี้ถือเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 4 (ม.40(4))",
+                explanation: "ผลประโยชน์หรือกำไรที่ได้จากการโอนคริปโทเคอร์เรนซี หรือโทเคนดิจิทัล ถูกจัดให้อยู่ในหมวดเงินได้ประเภทที่ 4 (กลุ่มเดียวกับดอกเบี้ยและเงินปันผล)"
+            },
+            {
+                question: "ยูทูบเบอร์ (YouTuber) ที่ทำช่องของตัวเองและมีรายได้จาก 'ส่วนแบ่งค่าโฆษณา (AdSense)' จัดเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 8 (ม.40(8))",
+                explanation: "รายได้จากส่วนแบ่งโฆษณา (AdSense) บนแพลตฟอร์มต่างๆ ถือเป็นการทำธุรกิจเชิงพาณิชย์ จึงตกเป็นเงินได้ประเภทที่ 8 (แต่ถ้ารับจ้างรีวิวสินค้าชิ้นๆ อาจเป็นประเภทที่ 2 หรือ 8 ขึ้นอยู่กับรูปแบบงาน)"
+            },
+            {
+                question: "นาง G 'ถูกรางวัลสลากกินแบ่งรัฐบาล' (ลอตเตอรี่) เงินรางวัลที่ได้รับจะต้องนำมารวมคำนวณเสียภาษีตอนปลายปีหรือไม่?",
+                options: ["ต้องนำมารวมคำนวณทั้งหมด", "ต้องนำมารวมเป็นเงินได้ประเภทที่ 8", "ไม่ต้องนำมารวมเพราะได้รับการยกเว้น", "ต้องนำมารวมและหักค่าใช้จ่ายได้ 50%"],
+                answer: "ไม่ต้องนำมารวมเพราะได้รับการยกเว้น",
+                explanation: "เงินรางวัลจากการถูกสลากกินแบ่งรัฐบาล ได้รับสิทธิยกเว้นไม่ต้องนำมารวมคำนวณภาษีเงินได้บุคคลธรรมดา (แต่ผู้ถูกรางวัลจะถูกหักอากรแสตมป์ 0.5% ของเงินรางวัล ณ วันที่ไปขึ้นเงินแล้ว)"
+            },
+            {
+                question: "การได้รับ 'เงินได้จากการรับมรดก' (จากบุพการี) มูลค่า 10 ล้านบาท จะต้องเสียภาษีเงินได้บุคคลธรรมดาหรือไม่?",
+                options: ["ต้องเสียในอัตราก้าวหน้า", "ต้องเสียในฐานะเงินได้ประเภทที่ 8", "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย", "ต้องถูกหักภาษี ณ ที่จ่าย 5%"],
+                answer: "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย",
+                explanation: "เงินได้จากการรับมรดกจะได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา (หากมรดกนั้นมีมูลค่าเกิน 100 ล้านบาท ถึงจะไปเข้าข่ายต้องเสีย 'ภาษีการรับมรดก' แทนในส่วนที่เกิน)"
             }
         ];
 
+        const shuffleArray = (array) => {
+            const newArr = [...array];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        };
+
         function App() {
             const [gameState, setGameState] = useState('start'); 
+            const [quizList, setQuizList] = useState(allQuizData); // ใส่ข้อมูลดั้งเดิมไว้ก่อนกัน Error
             const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
             const [score, setScore] = useState(0);
             const [attempts, setAttempts] = useState(0);
             const [feedback, setFeedback] = useState(null); 
-            const [playerName, setPlayerName] = useState('coco');
+            const [isAnimating, setIsAnimating] = useState(false);
+            const [playerName, setPlayerName] = useState('ผู้เล่นทั่วไป');
 
             useEffect(() => {
-                const name = localStorage.getItem('playerName') || 'coco';
-                setPlayerName(name);
+                const name = localStorage.getItem('playerName');
+                if (!name) {
+                    window.location.href = 'index.html'; 
+                } else {
+                    setPlayerName(name);
+                }
             }, []);
 
             useEffect(() => {
                 if (gameState === 'end') {
                     localStorage.setItem('game1Score', score);
+
                     const g2Score = parseInt(localStorage.getItem('game2Score') || '0');
                     const currentGlobalScore = score + g2Score;
                     localStorage.setItem('globalScore', currentGlobalScore);
 
-                    // เรียกใช้ฟังก์ชันส่งคะแนนแบบปลอดภัย
+                    // ส่งคะแนนขึ้นระบบ Cloud ไปยังบัญชีแอดมิน "coco"
                     if (typeof window.saveScoreToCloud === 'function') {
                         window.saveScoreToCloud(score, currentGlobalScore);
                     }
 
                     if(window.confetti) {
-                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                        const duration = 2500;
+                        const end = Date.now() + duration;
+                        (function frame() {
+                            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f472b6', '#a78bfa', '#facc15'] });
+                            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f472b6', '#a78bfa', '#facc15'] });
+                            if (Date.now() < end) { requestAnimationFrame(frame); }
+                        }());
                     }
                 }
             }, [gameState]);
 
             const startGame = () => {
-                setGameState('playing');
+                const shuffled = shuffleArray(allQuizData);
+                setQuizList(shuffled);
                 setCurrentQuestionIndex(0);
                 setScore(0);
                 setAttempts(0);
                 setFeedback(null);
+                setGameState('playing'); // เปลี่ยนสถานะหลังเตรียมข้อมูลเสร็จ
             };
 
             const handleAnswer = (selectedOption) => {
                 if (feedback && (feedback.status === 'correct' || feedback.status === 'skip')) return;
 
-                const currentQuestion = quizData[currentQuestionIndex];
+                const currentQuestion = quizList[currentQuestionIndex] || allQuizData[0];
                 const isCorrect = selectedOption === currentQuestion.answer;
 
                 if (isCorrect) {
@@ -113,13 +221,16 @@
                     setScore(prev => prev + points);
                     setFeedback({ status: 'correct', message: `🎉 ถูกต้องยอดเยี่ยม! ได้รับ +${points} คะแนน` });
                     
-                    setTimeout(() => { nextQuestion(); }, 2500);
+                    setTimeout(() => { nextQuestion(); }, 3000);
                 } else {
                     const nextAttempts = attempts + 1;
+                    setIsAnimating(true);
+                    setTimeout(() => setIsAnimating(false), 500); 
+
                     if (nextAttempts >= 3) {
                         setScore(prev => Math.max(0, prev - 5)); 
                         setFeedback({ status: 'skip', message: `😭 ผิดครบ 3 ครั้งแล้ว! ระบบขอข้ามและหักคะแนน -5 แต้ม` });
-                        setTimeout(() => { nextQuestion(); }, 3000);
+                        setTimeout(() => { nextQuestion(); }, 4000);
                     } else {
                         setAttempts(nextAttempts);
                         setFeedback({ status: 'incorrect', message: `❌ ยังไม่ถูกนะ! ลองคิดใหม่อีกที (เหลืออีก ${3 - nextAttempts} ครั้ง)` });
@@ -128,7 +239,7 @@
             };
 
             const nextQuestion = () => {
-                if (currentQuestionIndex + 1 < quizData.length) {
+                if (currentQuestionIndex + 1 < quizList.length) {
                     setCurrentQuestionIndex(prev => prev + 1);
                     setAttempts(0);
                     setFeedback(null);
@@ -140,26 +251,29 @@
             if (gameState === 'start') {
                 return (
                     <div className="cute-panel p-8 rounded-3xl text-center animate-pop">
-                        <h1 className="text-3xl font-bold text-purple-600 mb-1">เกมที่ 1: ตะลุยโลกภาษี</h1>
-                        <p className="text-gray-500 mb-6 text-sm">ยินดีต้อนรับผู้เล่นคนเก่ง! ✨</p>
+                        <div className="mb-4 inline-block bg-pink-100 p-4 rounded-full text-pink-500 shadow-sm border border-pink-200">
+                            <i className="fa-solid fa-gamepad text-5xl"></i>
+                        </div>
+                        <h1 className="text-3xl font-bold text-purple-600 mb-2">เกมที่ 1: ตะลุยโลกภาษี</h1>
+                        <p className="text-gray-500 mb-6 text-sm">ยินดีต้อนรับ <span className="font-bold text-pink-500">{playerName}</span>! ✨ มาท้าทายความรู้กัน</p>
                         
                         <div className="bg-pink-50 border-2 border-pink-100 p-5 rounded-2xl mb-6 text-left text-sm text-gray-700">
-                            <h3 className="font-bold text-pink-600 mb-3 text-base">⭐ กติกาการเล่น:</h3>
+                            <h3 className="font-bold text-pink-600 mb-3 text-base">⭐ กติกาการเล่น (สุ่ม 15 ข้อ):</h3>
                             <div className="space-y-2">
-                                <p className="flex items-center gap-2"><span className="bg-green-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">1</span> ตอบถูกครั้งแรก: <span className="text-green-600 font-bold">+10 คะแนน</span></p>
-                                <p className="flex items-center gap-2"><span className="bg-blue-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">2</span> ตอบถูกครั้งที่ 2: <span className="text-blue-600 font-bold">+5 คะแนน</span></p>
-                                <p className="flex items-center gap-2"><span className="bg-purple-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">3</span> ตอบถูกครั้งที่ 3: <span className="text-purple-600 font-bold">+2 คะแนน</span></p>
+                                <p className="flex items-center gap-2"><span className="bg-green-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">1</span> ตอบถูกครั้งแรก: <span className="text-green-600 font-bold">+10 คะแนน</span></p>
+                                <p className="flex items-center gap-2"><span className="bg-blue-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">2</span> ตอบถูกครั้งที่ 2: <span className="text-blue-600 font-bold">+5 คะแนน</span></p>
+                                <p className="flex items-center gap-2"><span className="bg-purple-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</span> ตอบถูกครั้งที่ 3: <span className="text-purple-600 font-bold">+2 คะแนน</span></p>
                             </div>
-                            <div className="mt-4 bg-red-100 text-red-700 p-2.5 rounded-xl font-medium text-xs flex items-center gap-1.5">
-                                <i className="fa-solid fa-circle-exclamation"></i> ตอบผิด 3 ครั้ง: -5 คะแนน และบังคับข้าม!
+                            <div className="mt-4 bg-red-100 text-red-700 p-3 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2">
+                                <i className="fa-solid fa-circle-exclamation text-lg"></i> ตอบผิด 3 ครั้ง: -5 คะแนน และบังคับข้าม!
                             </div>
                         </div>
 
                         <div className="space-y-3">
                             <button onClick={startGame} className="w-full bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold py-4 rounded-full shadow-md text-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-                                เริ่มตะลุยด่าน! <i className="fa-solid fa-paper-plane"></i>
+                                เริ่มตะลุยด่าน (สุ่มข้อสอบ)! <i className="fa-solid fa-paper-plane"></i>
                             </button>
-                            <button onClick={() => window.location.href = 'index.html'} className="w-full bg-white hover:bg-gray-50 text-gray-500 border-2 border-gray-200 font-bold py-3 rounded-full shadow-sm text-base flex items-center justify-center gap-2">
+                            <button onClick={() => window.location.href = 'index.html'} className="w-full bg-white hover:bg-gray-50 text-gray-500 border-2 border-gray-200 font-bold py-3.5 rounded-full shadow-sm text-base flex items-center justify-center gap-2">
                                 <i className="fa-solid fa-house"></i> กลับหน้าหลัก
                             </button>
                         </div>
@@ -170,103 +284,121 @@
             if (gameState === 'end') {
                 return (
                     <div className="cute-panel p-8 rounded-3xl text-center animate-pop">
-                        <div className="text-5xl mb-3">👑</div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">เก่งมากเล่นจบแล้ว!</h2>
-                        <div className="bg-purple-50 border-2 border-purple-100 py-4 px-6 rounded-2xl inline-block mb-6">
-                            <span className="block text-xs text-purple-500 font-bold">คะแนนที่ได้</span>
-                            <span className="text-4xl font-bold text-purple-600">{score}</span>
+                        <div className="text-6xl mb-4">🏆</div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">เก่งมาก! ทำครบ 15 ข้อแล้ว</h2>
+                        <p className="text-gray-500 text-sm mb-6">คะแนนของคุณถูกบันทึกและส่งเข้าตารางแอดมินเรียบร้อยแล้ว!</p>
+
+                        <div className="bg-purple-50 border-2 border-purple-100 py-5 px-8 rounded-3xl inline-block mb-8 shadow-inner">
+                            <span className="block text-sm text-purple-500 font-bold mb-1">คะแนนที่คุณทำได้</span>
+                            <span className="text-6xl font-black text-purple-600 drop-shadow-md">{score}</span>
+                            <span className="text-sm font-bold text-purple-400 ml-1">/ 150</span>
                         </div>
+                        
                         <div className="space-y-3">
-                            <button onClick={startGame} className="w-full bg-green-400 hover:bg-green-500 text-white font-bold py-3.5 rounded-full shadow-md text-base transition-transform active:scale-95">
-                                <i className="fa-solid fa-rotate-left mr-1"></i> เล่นอีกรอบ
+                            <button onClick={startGame} className="w-full bg-green-400 hover:bg-green-500 text-white font-bold py-4 rounded-full shadow-md text-base transition-transform active:scale-95">
+                                <i className="fa-solid fa-rotate-left mr-1"></i> เล่นอีกรอบ (สุ่มใหม่)
                             </button>
-                            <button onClick={() => window.location.href = 'index.html'} className="w-full bg-white hover:bg-gray-50 text-gray-500 border-2 border-gray-200 font-bold py-3 rounded-full shadow-sm text-base">
-                                <i className="fa-solid fa-house mr-1"></i> กลับหน้าหลัก
+                            <button onClick={() => window.location.href = 'index.html'} className="w-full bg-white hover:bg-gray-50 text-gray-600 border-2 border-gray-200 font-bold py-3.5 rounded-full shadow-sm text-base">
+                                <i className="fa-solid fa-house mr-1"></i> ดูคะแนนรวมที่หน้าหลัก
                             </button>
                         </div>
                     </div>
                 );
             }
 
-            const currentQuestion = quizData[currentQuestionIndex];
+            const currentQuestion = quizList[currentQuestionIndex] || allQuizData[0];
 
             return (
-                <div className="cute-panel p-6 rounded-3xl animate-pop">
-                    <div className="flex justify-between items-center mb-4 pb-3 border-b-2 border-dashed border-purple-100">
-                        <span className="text-sm font-bold text-purple-500 bg-purple-50 px-3 py-1 rounded-full">ข้อ {currentQuestionIndex + 1}/{quizData.length}</span>
-                        <span className="text-sm font-bold text-white bg-pink-400 px-3 py-1 rounded-full shadow-sm">คะแนน: {score}</span>
+                <div className={`cute-panel p-6 rounded-3xl animate-pop shadow-xl ${isAnimating ? 'animate-shake' : ''}`}>
+                    <div className="flex justify-between items-center mb-5 pb-3 border-b-2 border-dashed border-purple-100">
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => window.location.href = 'index.html'} className="bg-gray-100 hover:bg-pink-100 text-gray-500 hover:text-pink-600 transition-colors w-10 h-10 rounded-full flex items-center justify-center">
+                                <i className="fa-solid fa-house"></i>
+                            </button>
+                            <span className="text-sm font-bold text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-full shadow-sm">
+                                ข้อ {currentQuestionIndex + 1} / {quizList.length}
+                            </span>
+                        </div>
+                        <span className="text-sm font-bold text-white bg-pink-400 border-2 border-pink-500 px-4 py-1.5 rounded-full shadow-md">
+                            คะแนน: {score}
+                        </span>
                     </div>
 
-                    <h2 className="text-base sm:text-lg font-bold text-gray-700 mb-4 leading-relaxed">{currentQuestion.question}</h2>
+                    <h2 className="text-base sm:text-lg font-bold text-gray-700 mb-6 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        {currentQuestion.question}
+                    </h2>
 
-                    <div className="space-y-3 mb-4">
+                    <div className="space-y-3 mb-5">
                         {currentQuestion.options.map((option, idx) => {
-                            let btnStyle = "bg-white border-2 border-gray-100 text-gray-600 hover:bg-pink-50 hover:border-pink-300";
+                            let btnStyle = "bg-white border-2 border-gray-200 text-gray-600 hover:bg-pink-50 hover:border-pink-300";
                             if (feedback && (feedback.status === 'correct' || feedback.status === 'skip') && option === currentQuestion.answer) {
-                                btnStyle = "bg-green-400 border-green-500 text-white font-bold";
+                                btnStyle = "bg-green-400 border-green-500 text-white font-bold shadow-md";
                             }
                             const disabled = feedback && (feedback.status === 'correct' || feedback.status === 'skip');
 
                             return (
-                                <button key={idx} onClick={() => handleAnswer(option)} disabled={disabled} className={`w-full p-3.5 rounded-xl text-left text-sm font-medium transition-all shadow-sm ${btnStyle}`}>
-                                    {option}
+                                <button key={idx} onClick={() => handleAnswer(option)} disabled={disabled} className={`w-full p-4 rounded-2xl text-left text-sm font-medium transition-all ${btnStyle} ${disabled ? 'opacity-70 cursor-not-allowed' : 'active:scale-[0.98]'}`}>
+                                    <div className="flex justify-between items-center">
+                                        <span>{option}</span>
+                                        {feedback && (feedback.status === 'correct' || feedback.status === 'skip') && option === currentQuestion.answer && (
+                                            <i className="fa-solid fa-circle-check text-white text-xl"></i>
+                                        )}
+                                    </div>
                                 </button>
                             );
                         })}
                     </div>
 
                     {feedback && (
-                        <div className={`p-3 rounded-xl text-xs sm:text-sm font-bold mb-2 ${feedback.status === 'correct' ? 'bg-green-50 text-green-700' : feedback.status === 'skip' ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'}`}>
+                        <div className={`p-4 rounded-xl text-sm font-bold mb-3 shadow-inner ${feedback.status === 'correct' ? 'bg-green-50 text-green-700 border border-green-200' : feedback.status === 'skip' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>
                             {feedback.message}
+                        </div>
+                    )}
+
+                    {feedback && (feedback.status === 'correct' || feedback.status === 'skip') && (
+                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl animate-pop text-sm text-slate-600">
+                            <span className="font-bold text-blue-500 block mb-1"><i className="fa-solid fa-lightbulb"></i> คำอธิบาย:</span>
+                            {currentQuestion.explanation}
                         </div>
                     )}
                 </div>
             );
         }
 
-        // มั่นใจได้ว่า React จะเรนเดอร์สำเร็จเสมอแม้สคริปต์ภายนอกทำงานช้า
         window.addEventListener('DOMContentLoaded', () => {
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(<App />);
         });
     </script>
 
-    <!-- ========================================== -->
-    <!-- ระบบส่งคะแนนแบบป้องกัน Error 100% -->
-    <!-- ========================================== -->
+    <!-- ระบบส่งคะแนนขึ้น Cloud -->
     <script type="module">
-        try {
-            const { getFirestore, doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            window.saveScoreToCloud = async function(game1Score, totalScore) {
-                const playerName = localStorage.getItem('playerName') || 'coco';
-                try {
-                    if (typeof shadow !== 'undefined' && typeof shadow.getApp === 'function') {
-                        const app = shadow.getApp();
-                        const db = getFirestore(app);
-                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                        
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard', playerName);
-                        await setDoc(docRef, {
-                            name: playerName,
-                            game1Score: parseInt(game1Score),
-                            score: parseInt(totalScore),
-                            admin: "coco",
-                            adminName: "coco",
-                            timestamp: serverTimestamp()
-                        }, { merge: true });
-                        
-                        console.log("ส่งสรุปคะแนนเข้าบัญชีแอดมิน coco เรียบร้อย!");
-                    } else {
-                        console.warn("ระบบจำลองยังไม่เปิดใช้งาน คะแนนจะถูกเซฟไว้ในเครื่องก่อน");
-                    }
-                } catch (e) {
-                    console.error("Firebase Storage Error: ", e);
+        window.saveScoreToCloud = async function(game1Score, totalScore) {
+            const playerName = localStorage.getItem('playerName') || 'ผู้เล่นทั่วไป';
+            
+            try {
+                if (typeof shadow !== 'undefined' && typeof shadow.getApp === 'function') {
+                    const app = shadow.getApp();
+                    const db = getFirestore(app);
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard', playerName);
+                    await setDoc(docRef, {
+                        name: playerName,
+                        game1Score: parseInt(game1Score),
+                        score: parseInt(totalScore),
+                        admin: "coco",
+                        adminName: "coco",
+                        timestamp: serverTimestamp()
+                    }, { merge: true });
+                    console.log("ส่งคะแนนไปที่บัญชีแอดมิน coco สำเร็จ!");
                 }
+            } catch (error) {
+                console.error("Cloud Error:", error);
             }
-        } catch (globalError) {
-            console.error("โมดูลหลักไม่สามารถโหลดได้ ตัวเกมสแตนด์อโลนเริ่มทำงานแทน:", globalError);
-        }
+        };
     </script>
 </body>
 </html>
