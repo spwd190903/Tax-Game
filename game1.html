@@ -8,8 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- เพิ่ม Font น่ารักๆ -->
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- เพิ่ม Canvas Confetti สำหรับจุดพลุตอนจบเกม -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         body {
@@ -110,6 +112,54 @@
     <!-- Main Game Container -->
     <div id="app" class="relative w-full max-w-2xl cute-box transition-all duration-300">
         
+        <!-- ============================================== -->
+        <!-- หน้าจอล็อกอิน (Login Screen) -->
+        <!-- ============================================== -->
+        <div id="screen-login" class="screen p-6 sm:p-10 text-center relative hidden">
+            <div class="mb-4 animate-bounce-soft relative inline-block mt-4">
+                <div class="bg-gradient-to-br from-pink-400 to-purple-500 w-24 h-24 rounded-full flex items-center justify-center mx-auto border-4 border-white shadow-lg">
+                    <i class="fa-solid fa-user text-5xl text-white"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-extrabold text-slate-800 mb-6">เข้าสู่ระบบ</h2>
+            <div class="max-w-xs mx-auto">
+                <input type="text" id="login-username" placeholder="กรอกชื่อผู้เล่นของคุณ" class="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-500 focus:outline-none mb-4 text-center font-bold text-slate-700" onkeypress="if(event.key === 'Enter') login()">
+                <button onclick="login()" class="cute-btn bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-3 px-8 rounded-full text-lg w-full shadow-lg mb-4">
+                    เข้าเล่นเกม <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- หน้าจอแอดมิน (Admin Screen) -->
+        <!-- ============================================== -->
+        <div id="screen-admin" class="screen hidden p-6 sm:p-10 relative">
+            <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 mb-6 text-center">
+                <i class="fa-solid fa-shield-halved mr-2"></i> ระบบผู้ดูแลระบบ
+            </h2>
+
+            <div class="bg-white/90 rounded-2xl p-4 shadow-sm border-2 border-indigo-100 max-h-[350px] overflow-y-auto custom-scrollbar mb-6">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-indigo-50 text-indigo-800 border-b-2 border-indigo-200">
+                            <th class="p-3 font-bold rounded-tl-lg">ชื่อผู้เล่น</th>
+                            <th class="p-3 font-bold text-center">คะแนน</th>
+                            <th class="p-3 font-bold text-right rounded-tr-lg">เวลาที่เล่น</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        <!-- ข้อมูลจะถูกโหลดมาที่นี่ -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-center">
+                <button onclick="logout()" class="cute-btn bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-600 font-bold py-3 px-8 rounded-full text-lg shadow-sm">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ
+                </button>
+            </div>
+        </div>
+
         <!-- ============================================== -->
         <!-- หน้าจอเริ่มเกม (Start Screen) -->
         <!-- ============================================== -->
@@ -246,7 +296,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let db, auth, user, appId;
 
@@ -287,24 +337,37 @@
             }
         };
 
+        window.fetchAdminData = async function() {
+            if (db) {
+                try {
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard');
+                    // ดึงข้อมูลเรียงจากล่าสุดไปเก่าสุด
+                    const q = query(colRef, orderBy('timestamp', 'desc'));
+                    const snapshot = await getDocs(q);
+                    const results = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        results.push({
+                            name: data.name,
+                            score: data.score,
+                            timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString('th-TH') : 'ไม่ระบุเวลา'
+                        });
+                    });
+                    return results;
+                } catch(e) {
+                    console.error("Fetch err", e);
+                    return null;
+                }
+            }
+            return null;
+        }
+
         window.initFirebase();
     </script>
 
     <script>
-        // ข้อมูลคำถามทั้งหมด 15 ข้อ
+        // ข้อมูลคำถามทั้งหมด 10 ข้อ
         const quizData = [
-             {
-                question: "นางสาว B เป็นตัวแทนขายประกันชีวิต ได้รับ 'ค่านายหน้า' จากยอดขาย ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))"],
-                answer: "ประเภทที่ 2 (ม.40(2))",
-                explanation: "เงินได้ประเภทที่ 2 คือ เงินได้เนื่องจากหน้าที่หรือตำแหน่งงานที่ทำ หรือจากการรับทำงานให้ เช่น ค่านายหน้า ค่าธรรมเนียม เบี้ยประชุม โดยไม่มีความสัมพันธ์แบบจ้างแรงงานถาวร"
-            },
-            {
-                question: "การได้รับ 'เงินได้จากการรับมรดก' (จากบุพการี) มูลค่า 10 ล้านบาท จะต้องเสียภาษีเงินได้บุคคลธรรมดาหรือไม่?",
-                options: ["ต้องเสียในอัตราก้าวหน้า", "ต้องเสียในฐานะเงินได้ประเภทที่ 8", "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย", "ต้องถูกหักภาษี ณ ที่จ่าย 5%"],
-                answer: "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย",
-                explanation: "เงินได้จากการรับมรดกจะได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา (หากมรดกนั้นมีมูลค่าเกิน 100 ล้านบาท ถึงจะไปเข้าข่ายต้องเสีย 'ภาษีการรับมรดก' แทนในส่วนที่เกิน)"
-            },
             {
                 question: "นาย A เป็นพนักงานบริษัทเอกชน ได้รับ 'เงินเดือน' และ 'โบนัส' สิ้นปี ถือเป็นเงินได้พึงประเมินประเภทใด?",
                 options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 8 (ม.40(8))"],
@@ -312,16 +375,16 @@
                 explanation: "เงินได้ประเภทที่ 1 คือ เงินได้จากการจ้างแรงงาน เช่น เงินเดือน ค่าจ้าง โบนัส เบี้ยเลี้ยง บำนาญ มีลักษณะเป็นพนักงานประจำที่มีข้อตกลงการจ้างงาน"
             },
             {
+                question: "นางสาว B เป็นตัวแทนขายประกันชีวิต ได้รับ 'ค่านายหน้า' จากยอดขาย ถือเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))"],
+                answer: "ประเภทที่ 2 (ม.40(2))",
+                explanation: "เงินได้ประเภทที่ 2 คือ เงินได้เนื่องจากหน้าที่หรือตำแหน่งงานที่ทำ หรือจากการรับทำงานให้ เช่น ค่านายหน้า ค่าธรรมเนียม เบี้ยประชุม โดยไม่มีความสัมพันธ์แบบจ้างแรงงานถาวร"
+            },
+            {
                 question: "นักแต่งเพลงและนักเขียน ได้รับ 'ค่าลิขสิทธิ์' และค่าลิขสิทธิ์ผลงานเพลง ถือเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 7 (ม.40(7))"],
                 answer: "ประเภทที่ 3 (ม.40(3))",
                 explanation: "เงินได้ประเภทที่ 3 คือ ค่าแห่งกู๊ดวิลล์ ค่าลิขสิทธิ์ หรือสิทธิอย่างอื่น เงินปี หรือเงินได้มีลักษณะเป็นเงินรายปีอันได้มาจากพินัยกรรมหรือนิติกรรมอื่น"
-            },
-             {
-                question: "ดารา นักแสดง นักร้อง หรืออินฟลูเอนเซอร์ที่รับงานรีวิวสินค้าเป็นครั้งคราว ได้รับเงินได้พึงประเมินประเภทใด?",
-                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 8 (ม.40(8))",
-                explanation: "ตามกฎหมายภาษีของไทย รายได้ของนักแสดงสาธารณะ (ดารา นักร้อง นักแสดง นักกีฬาอาชีพ) ถูกกำหนดให้เป็นเงินได้ประเภทที่ 8 (ม.40(8))"
             },
             {
                 question: "นาย C นำเงินไปลงทุนและฝากธนาคาร จนได้รับ 'ดอกเบี้ยเงินฝาก' และ 'เงินปันผลจากหุ้น' ถือเป็นเงินได้ประเภทใด?",
@@ -330,22 +393,10 @@
                 explanation: "เงินได้ประเภทที่ 4 คือ เงินได้จากการลงทุนในสินทรัพย์ทางการเงิน (Capital) เช่น ดอกเบี้ยเงินฝาก เงินปันผล ส่วนแบ่งกำไร และกำไรจากสินทรัพย์ดิจิทัล"
             },
             {
-                question: "เงินได้ประเภทใดต่อไปนี้ เมื่อนำมารวมกันแล้ว 'หักค่าใช้จ่ายแบบเหมาได้ 50% แต่สูงสุดไม่เกิน 100,000 บาท'?",
-                options: ["ประเภทที่ 1 และ 2", "ประเภทที่ 3 และ 4", "ประเภทที่ 5 อย่างเดียว", "ประเภทที่ 8 ทั้งหมด"],
-                answer: "ประเภทที่ 1 และ 2",
-                explanation: "ตามกฎหมาย ให้นำเงินได้ประเภทที่ 1 (เช่น เงินเดือน) และประเภทที่ 2 (เช่น ค่านายหน้า/รับจ้างทั่วไป) มารวมกันก่อน แล้วจึงหักค่าใช้จ่ายแบบเหมาได้ 50% แต่รวมกันต้องไม่เกิน 100,000 บาท"
-            },
-            {
-                question: "ยูทูบเบอร์ (YouTuber) ที่ทำช่องของตัวเองและมีรายได้จาก 'ส่วนแบ่งค่าโฆษณา (AdSense)' จัดเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 8 (ม.40(8))",
-                explanation: "รายได้จากส่วนแบ่งโฆษณา (AdSense) บนแพลตฟอร์มต่างๆ ถือเป็นการทำธุรกิจเชิงพาณิชย์ หรือเงินได้อื่นๆ ที่ไม่เข้าพวกในประเภท 1-7 จึงตกเป็นเงินได้ประเภทที่ 8 (แต่ถ้ารับจ้างรีวิวสินค้าชิ้นๆ อาจเป็นประเภทที่ 2 หรือ 8 ขึ้นอยู่กับรูปแบบงาน)"
-            },
-            {
-                question: "นาง G 'ถูกรางวัลสลากกินแบ่งรัฐบาล' (ลอตเตอรี่) เงินรางวัลที่ได้รับจะต้องนำมารวมคำนวณเสียภาษีตอนปลายปีหรือไม่?",
-                options: ["ต้องนำมารวมคำนวณทั้งหมด", "ต้องนำมารวมเป็นเงินได้ประเภทที่ 8", "ไม่ต้องนำมารวมเพราะได้รับการยกเว้น", "ต้องนำมารวมและหักค่าใช้จ่ายได้ 50%"],
-                answer: "ไม่ต้องนำมารวมเพราะได้รับการยกเว้น",
-                explanation: "เงินรางวัลจากการถูกสลากกินแบ่งรัฐบาล ได้รับสิทธิยกเว้นไม่ต้องนำมารวมคำนวณภาษีเงินได้บุคคลธรรมดา (แต่ผู้ถูกรางวัลจะถูกหักอากรแสตมป์ 0.5% ของเงินรางวัล ณ วันที่ไปขึ้นเงินแล้ว)"
+                question: "นาง D มีตึกแถวว่าง 1 คูหา จึงเปิดให้ผู้สนใจมาเช่าทำร้านค้า ได้รับ 'ค่าเช่าตึก' ทุกเดือน ถือเป็นเงินได้ประเภทใด?",
+                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 5 (ม.40(5))",
+                explanation: "เงินได้ประเภทที่ 5 คือ เงินได้จากการให้เช่าทรัพย์สินทุกประเภท การผิดสัญญาเช่าซื้อ หรือการผิดสัญญาซื้อขายเงินผ่อน"
             },
             {
                 question: "ข้อใดจัดเป็นเงินได้ประเภทวิชาชีพอิสระ 'ประเภทที่ 6 (ม.40(6))' ?",
@@ -360,22 +411,16 @@
                 explanation: "เงินได้ประเภทที่ 7 คือ เงินได้จากการรับเหมาที่ผู้รับเหมาต้องจัดหาสัมภาระในส่วนสำคัญนอกจากเครื่องมือ (เช่น อิฐ หิน ปูน ทราย เหล็ก) หากผู้ว่าจ้างจัดหาของให้เองทั้งหมดจะไปเข้าประเภทที่ 2"
             },
             {
-                question: "นาง D มีตึกแถวว่าง 1 คูหา จึงเปิดให้ผู้สนใจมาเช่าทำร้านค้า ได้รับ 'ค่าเช่าตึก' ทุกเดือน ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 5 (ม.40(5))",
-                explanation: "เงินได้ประเภทที่ 5 คือ เงินได้จากการให้เช่าทรัพย์สินทุกประเภท การผิดสัญญาเช่าซื้อ หรือการผิดสัญญาซื้อขายเงินผ่อน"
-            },
-            {
-                question: "นาย F เทรดคริปโทเคอร์เรนซี (Cryptocurrency) และ 'ได้กำไรจากการขาย' กำไรส่วนนี้ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 4 (ม.40(4))",
-                explanation: "ผลประโยชน์หรือกำไรที่ได้จากการโอนคริปโทเคอร์เรนซี หรือโทเคนดิจิทัล ถูกจัดให้อยู่ในหมวดเงินได้ประเภทที่ 4 (กลุ่มเดียวกับดอกเบี้ยและเงินปันผล)"
-            },
-            {
                 question: "เจ้าของร้านอาหาร บุคคลทั่วไปที่ขายเสื้อผ้าออนไลน์ หรือเกษตรกรขายผลผลิต จัดเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
                 answer: "ประเภทที่ 8 (ม.40(8))",
                 explanation: "เงินได้ประเภทที่ 8 คือ เงินได้จากการธุรกิจ การพาณิชย์ การเกษตร การอุตสาหกรรม การขนส่ง หรือเงินได้อื่นๆ ที่ไม่เข้าพวกในประเภทที่ 1 ถึงประเภทที่ 7"
+            },
+            {
+                question: "ดารา นักแสดง นักร้อง หรืออินฟลูเอนเซอร์ที่รับงานรีวิวสินค้าเป็นครั้งคราว ได้รับเงินได้พึงประเมินประเภทใด?",
+                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
+                answer: "ประเภทที่ 8 (ม.40(8))",
+                explanation: "ตามกฎหมายภาษีของไทย รายได้ของนักแสดงสาธารณะ (ดารา นักร้อง นักแสดง นักกีฬาอาชีพ) ถูกกำหนดให้เป็นเงินได้ประเภทที่ 8 (ม.40(8))"
             },
             {
                 question: "ข้อใดคือการแยกแยะระหว่างเงินได้ประเภทที่ 1 และประเภทที่ 2 ได้ถูกต้องที่สุด?",
@@ -401,13 +446,88 @@
         window.onload = function() {
             playerName = localStorage.getItem('playerName');
             if (!playerName) {
-                // หากผู้เล่นแอบเปิดลิงก์ตรงโดยไม่ผ่านหน้าหลัก ให้เด้งกลับไปหน้าหลัก
-                window.location.href = 'index.html';
-                return;
+                // หากยังไม่มีชื่อ ให้แสดงหน้าล็อกอิน
+                showScreen('screen-login');
+            } else {
+                checkRoleAndRoute();
             }
-            document.getElementById('ui-welcome-player').innerText = `ยินดีต้อนรับคุณ ${playerName} คนเก่ง! ✨`;
-            document.getElementById('ui-player-name-display').innerText = playerName;
         };
+
+        // ฟังก์ชันล็อกอินจากหน้าล็อกอิน
+        function login() {
+            const nameInput = document.getElementById('login-username').value.trim();
+            if (nameInput) {
+                localStorage.setItem('playerName', nameInput);
+                playerName = nameInput;
+                checkRoleAndRoute();
+            } else {
+                // แจ้งเตือนสั่นปุ่มถ้ายกเว้นชื่อว่าง
+                const btn = document.querySelector('#screen-login button');
+                btn.classList.add('animate-wiggle', 'bg-red-500');
+                setTimeout(() => btn.classList.remove('animate-wiggle', 'bg-red-500'), 500);
+            }
+        }
+
+        // ตรวจสอบสิทธิ์ว่าเป็น coco หรือไม่
+        function checkRoleAndRoute() {
+            if (playerName.toLowerCase() === 'coco') {
+                showScreen('screen-admin');
+                loadAdminData();
+            } else {
+                document.getElementById('ui-welcome-player').innerText = `ยินดีต้อนรับคุณ ${playerName} คนเก่ง! ✨`;
+                document.getElementById('ui-player-name-display').innerText = playerName;
+                showScreen('screen-start');
+            }
+        }
+
+        // ออกจากระบบ
+        function logout() {
+            localStorage.removeItem('playerName');
+            location.reload();
+        }
+
+        // โหลดข้อมูลเข้าสู่ตารางของแอดมิน
+        async function loadAdminData() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center p-8 text-indigo-500 font-bold"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 block"></i> กำลังโหลดข้อมูลประวัติผู้เล่น...</td></tr>';
+
+            // หน่วงเวลาเล็กน้อยให้ Firebase พร้อมทำงาน
+            setTimeout(async () => {
+                let data = null;
+                if (window.fetchAdminData) {
+                    data = await window.fetchAdminData();
+                }
+
+                if (data && data.length > 0) {
+                    renderAdminTable(data);
+                } else {
+                    // Fallback แสดงข้อมูลในเครื่อง (Local) หากไม่มีเน็ตหรือต่อฐานข้อมูลไม่ได้
+                    const localData = JSON.parse(localStorage.getItem('localLeaderboard') || '[]');
+                    if(localData.length > 0) {
+                        localData.sort((a,b) => b.score - a.score);
+                        renderAdminTable(localData);
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center p-6 text-slate-500 bg-slate-50 rounded-lg">ยังไม่มีประวัติการเล่นในระบบ</td></tr>';
+                    }
+                }
+            }, 1000);
+        }
+
+        // เรนเดอร์ข้อมูลลงตาราง
+        function renderAdminTable(data) {
+            const tbody = document.getElementById('admin-table-body');
+            let html = '';
+            data.forEach(item => {
+                html += `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td class="p-3 font-semibold text-slate-700">${item.name}</td>
+                        <td class="p-3 text-center font-bold text-indigo-600 bg-indigo-50/50">${item.score}</td>
+                        <td class="p-3 text-right text-sm text-slate-500">${item.timestamp || item.date}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
 
         // ฟังก์ชันสลับหน้าจอ
         function showScreen(screenId) {
@@ -605,44 +725,60 @@
             document.getElementById('ui-final-score').innerText = score;
             
             const msgElement = document.getElementById('ui-result-message');
-            if (score > 100) {
-                msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูทำคะแนนด่านภาษีได้ทะลุเป้ามากๆ!';
-            } else if (score > 60) {
+            if (score > 80) {
+                msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูทำคะแนนด่านภาษีได้ดีมากๆ!';
+            } else if (score > 50) {
                 msgElement.innerHTML = '🌟 เก่งมากๆ เลยจ้า! 🌟<br>มีความรู้เรื่องภาษีที่ยอดเยี่ยมเลย';
             } else {
                 msgElement.innerHTML = '💪 พยายามได้ดีมาก! 💪<br>ลองกลับไปฝึกฝนและศึกษาเพิ่มเติมได้น้า!';
             }
             
-            // ------------------------------------------------
-            // ระบบบันทึกคะแนนแบบแยกด่าน (ใหม่!)
-            // ------------------------------------------------
-            // 1. ดึงคะแนนเดิมของ "เกมที่ 1" มาบวกเพิ่ม
-            let currentGame1Score = parseInt(localStorage.getItem('game1Score') || '0');
-            currentGame1Score += score;
-            localStorage.setItem('game1Score', currentGame1Score);
-
-            // 2. อัปเดตคะแนนรวมทั้งหมด
+            // คำนวณคะแนนรวมในระบบสะสมแต้ม
             let currentGlobalScore = parseInt(localStorage.getItem('globalScore') || '0');
             currentGlobalScore += score;
             localStorage.setItem('globalScore', currentGlobalScore);
-<script type="module">
-       
-    </script>
+
+            // บันทึกข้อมูลสำรองไว้ในเครื่องสำหรับแสดงในหน้าแอดมินกรณีฐานข้อมูลหลักมีปัญหา
+            const localLeaderboard = JSON.parse(localStorage.getItem('localLeaderboard') || '[]');
+            localLeaderboard.push({
+                name: playerName,
+                score: currentGlobalScore, 
+                date: new Date().toLocaleString('th-TH')
+            });
+            localStorage.setItem('localLeaderboard', JSON.stringify(localLeaderboard));
+
+            // บันทึกคะแนนใหม่ขึ้นสู่คลาวด์เพื่อให้คะแนนอัปเดตบนตารางผู้นำ (Hall of Fame) ในหน้าหลัก
+            if (window.saveScoreToCloud) {
+                window.saveScoreToCloud(playerName, currentGlobalScore);
+            }
+
             // เล่นเอฟเฟกต์จุดพลุฉลอง
             if(window.confetti) {
                 const duration = 3000;
                 const end = Date.now() + duration;
 
                 (function frame() {
-                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047'] });
-                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047'] });
-                    if (Date.now() < end) { requestAnimationFrame(frame); }
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047']
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
                 }());
             }
-            // เรียกใช้คำสั่งนี้ในจังหวะที่เกมคำนวณคะแนนเสร็จ (เปลี่ยน totalScore เป็นชื่อตัวแปรคะแนนในเกมของคุณ)
-if (window.saveScoreToCloud) {
-    window.saveScoreToCloud(totalScore); 
-}
+            
             showScreen('screen-result');
         }
     </script>
