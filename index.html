@@ -94,9 +94,18 @@
                 document.getElementById('player-name-input').focus();
                 return;
             }
-            // บันทึกชื่อลงระบบเครื่อง แล้วส่งไปหน้า game1.html
+            
+            // บันทึกชื่อลงระบบ
             localStorage.setItem('playerName', nameInput);
-            window.location.href = "game1.html";
+            
+            // ตรวจสอบว่าถ้าเพิ่งเคยเล่นครั้งแรก ให้ตั้งค่าด่านเป็น 1 และคะแนนเป็น 0
+            if (!localStorage.getItem('currentLevel')) {
+                localStorage.setItem('currentLevel', 1);
+                localStorage.setItem('totalScore', 0);
+            }
+            
+            // พานักเรียนไปหน้าเช็คความคืบหน้าแผนที่
+            window.location.href = "hub.html";
         }
 
         // ---------------------------------------------------
