@@ -125,13 +125,13 @@
             </div>
             
             <h1 class="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-2 drop-shadow-sm leading-tight">
-                เกมภาษีพาสนุก ม.40
+                เกมที่ 1: ตะลุยโลกภาษี
             </h1>
-            <p class="text-purple-600 font-bold mb-8 animate-pulse text-lg">ตอบถูกรับคะแนน ตอบผิดโดนหัก! 📝</p>
+            <p id="ui-welcome-player" class="text-purple-600 font-bold mb-4 text-lg">ยินดีต้อนรับผู้เล่นคนเก่ง! ✨</p>
 
             <!-- กล่องกติกา -->
             <div class="bg-white/70 rounded-[2rem] p-6 mb-8 border-2 border-pink-100 shadow-sm text-left max-w-md mx-auto">
-                <h3 class="text-pink-600 font-bold mb-3 flex items-center text-lg"><i class="fa-solid fa-star text-yellow-400 mr-2 text-2xl"></i> กติกาการให้คะแนน:</h3>
+                <h3 class="text-pink-600 font-bold mb-3 flex items-center text-lg"><i class="fa-solid fa-star text-yellow-400 mr-2 text-2xl"></i> กติกาการเล่น:</h3>
                 <ul class="list-none text-slate-700 space-y-3">
                     <li class="flex items-center"><span class="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 text-sm font-bold shadow-sm">1</span> ตอบถูกครั้งแรก: <strong class="ml-1 text-green-600 text-lg">+10</strong> คะแนน</li>
                     <li class="flex items-center"><span class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 text-sm font-bold shadow-sm">2</span> ตอบถูกครั้งที่ 2: <strong class="ml-1 text-blue-600 text-lg">+5</strong> คะแนน</li>
@@ -139,12 +139,13 @@
                     <li class="flex items-center mt-4 p-3 bg-red-50 rounded-xl text-red-500 font-bold border-2 border-red-100 shadow-sm"><i class="fa-solid fa-triangle-exclamation mr-2 text-xl animate-wiggle"></i> ตอบผิด 3 ครั้ง: <strong class="mx-1">-5</strong> คะแนน และบังคับข้าม!</li>
                 </ul>
             </div>
+
             <div class="flex flex-col gap-4 max-w-sm mx-auto">
                 <button onclick="startGame()" class="cute-btn bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white font-bold py-4 px-12 rounded-full text-xl w-full border-2 border-white shadow-lg">
-                    เริ่มเล่นเลย! <i class="fa-solid fa-paper-plane ml-2"></i>
+                    เริ่มตะลุยด่าน! <i class="fa-solid fa-paper-plane ml-2"></i>
                 </button>
-                <button onclick="showLeaderboardScreen()" class="cute-btn bg-white hover:bg-pink-50 border-2 border-pink-200 text-pink-600 font-bold py-3.5 px-8 rounded-full text-lg w-full shadow-sm">
-                    <i class="fa-solid fa-crown text-yellow-400 mr-2 text-xl"></i> ดูรายชื่อคนเก่ง
+                <button onclick="goBackToMenu()" class="cute-btn bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-600 font-bold py-3.5 px-8 rounded-full text-lg w-full shadow-sm">
+                    <i class="fa-solid fa-house mr-2"></i> กลับหน้าหลัก
                 </button>
             </div>
         </div>
@@ -155,7 +156,7 @@
         <div id="screen-game" class="screen hidden p-4 sm:p-6 pb-8">
             <!-- Header แจ้งสถานะด้านบน -->
             <div class="flex justify-between items-center mb-6 bg-white/90 p-3 rounded-2xl border-2 border-pink-100 shadow-sm relative z-10">
-                <button onclick="goHome()" class="text-pink-400 hover:text-pink-600 bg-pink-50 hover:bg-pink-100 w-11 h-11 rounded-full flex items-center justify-center mr-2 transition-colors shrink-0 cute-btn border border-pink-200" title="กลับหน้าหลัก">
+                <button onclick="goBackToMenu()" class="text-pink-400 hover:text-pink-600 bg-pink-50 hover:bg-pink-100 w-11 h-11 rounded-full flex items-center justify-center mr-2 transition-colors shrink-0 cute-btn border border-pink-200" title="กลับหน้าหลัก">
                     <i class="fa-solid fa-house"></i>
                 </button>
                 
@@ -173,7 +174,7 @@
             <!-- ป้ายคะแนน -->
             <div class="flex justify-center mb-[-15px] relative z-20">
                 <div class="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-2.5 rounded-full shadow-lg text-lg font-black border-4 border-white transform hover:scale-105 transition-transform">
-                    คะแนน: <span id="ui-score" class="text-2xl ml-2">0</span>
+                    คะแนนด่านนี้: <span id="ui-score" class="text-2xl ml-2">0</span>
                 </div>
             </div>
 
@@ -212,13 +213,13 @@
         <!-- ============================================== -->
         <div id="screen-result" class="screen hidden p-6 sm:p-10 text-center relative">
             <h2 class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-6 drop-shadow-sm">
-                จบเกมแล้วจ้า! 🎉
+                เก่งมากเลยจ้า! 🎉
             </h2>
             
             <!-- กล่องคะแนนรวม -->
             <div class="bg-white/90 rounded-[2.5rem] p-8 mb-8 inline-block border-4 border-pink-300 shadow-xl mx-auto w-full max-w-xs relative animate-pop-in">
                 <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-yellow-900 font-bold px-6 py-1.5 rounded-full text-sm border-2 border-white shadow-md whitespace-nowrap">
-                    คะแนนของคุณ
+                    คะแนนที่ได้รับในรอบนี้
                 </div>
                 <p id="ui-final-score" class="text-7xl font-black text-pink-500 drop-shadow-md">0</p>
                 <div class="mt-4 text-5xl animate-wiggle inline-block">🏆</div>
@@ -231,56 +232,25 @@
                 </p>
             </div>
 
-            <!-- เพิ่มส่วนแสดงผลประวัติคะแนน (Leaderboard ขนาดย่อ) -->
-            <div class="bg-white/90 rounded-[2rem] p-5 mb-8 mx-auto w-full max-w-md border-2 border-pink-100 shadow-md">
-                <h3 class="text-pink-500 font-bold mb-4 text-lg flex items-center justify-center"><i class="fa-solid fa-crown text-yellow-400 mr-2 text-2xl animate-bounce-soft"></i> ทำเนียบคนเก่ง</h3>
-                <div id="leaderboard-container-result" class="space-y-2 text-left text-sm max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                    <p class="text-pink-300 text-center text-sm py-4 font-medium animate-pulse">กำลังโหลดข้อมูลคนเก่ง...</p>
-                </div>
-            </div>
-
             <div class="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
                 <button onclick="startGame()" class="cute-btn bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold py-3.5 px-8 rounded-full text-lg w-full sm:w-auto flex-1 shadow-lg border-2 border-white">
-                    <i class="fa-solid fa-rotate-right mr-2"></i> เล่นอีกครั้ง
+                    <i class="fa-solid fa-rotate-right mr-2"></i> เล่นอีกรอบ
                 </button>
-                <button onclick="goHome()" class="cute-btn bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-600 font-bold py-3.5 px-8 rounded-full text-lg w-full sm:w-auto flex-1 shadow-sm">
-                    <i class="fa-solid fa-house mr-2"></i> หน้าหลัก
+                <button onclick="goBackToMenu()" class="cute-btn bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-600 font-bold py-3.5 px-8 rounded-full text-lg w-full sm:w-auto flex-1 shadow-sm">
+                    <i class="fa-solid fa-house mr-2"></i> กลับหน้าเลือกเกม
                 </button>
             </div>
-        </div>
-
-        <!-- ============================================== -->
-        <!-- หน้าจอดูประวัติผู้เล่น (Standalone Leaderboard Screen) -->
-        <!-- ============================================== -->
-        <div id="screen-leaderboard" class="screen hidden text-center p-6 sm:p-10 relative">
-            <div class="inline-block bg-pink-100 text-pink-500 p-5 rounded-full mb-4 animate-bounce-soft border-4 border-white shadow-md">
-                <i class="fa-solid fa-crown text-5xl"></i>
-            </div>
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-8 drop-shadow-sm">
-                รายชื่อคนเก่ง
-            </h2>
-            
-            <div class="bg-white/90 rounded-[2.5rem] p-6 sm:p-8 mb-8 mx-auto w-full max-w-lg border-4 border-pink-200 shadow-xl relative z-10">
-                <div id="leaderboard-container-standalone" class="space-y-3 text-left text-base max-h-[50vh] overflow-y-auto pr-3 custom-scrollbar">
-                    <p class="text-pink-400 text-center py-8 font-bold animate-pulse text-lg">กำลังดึงข้อมูลคนเก่งมาโชว์น้า...</p>
-                </div>
-            </div>
-
-            <button onclick="goHome()" class="cute-btn bg-gradient-to-r from-purple-400 to-pink-500 text-white font-bold py-4 px-12 rounded-full text-xl shadow-lg border-2 border-white mx-auto inline-flex items-center">
-                <i class="fa-solid fa-arrow-left mr-2"></i> กลับหน้าหลัก
-            </button>
         </div>
 
     </div>
 
-    <!-- Firebase Scripts (เหมือนเดิม) -->
+    <!-- Firebase Scripts (สำหรับบันทึกข้อมูลคะแนนสะสมร่วมกัน) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let db, auth, user, appId;
-        let localLeaderboard = []; 
 
         window.initFirebase = function() {
             try {
@@ -293,62 +263,28 @@
                 db = getFirestore(app);
                 appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-                const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                };
-                
-                initAuth();
-
+                signInAnonymously(auth);
                 onAuthStateChanged(auth, (currentUser) => {
                     user = currentUser;
-                    if (user) {
-                        subscribeToLeaderboard();
-                    }
                 });
             } catch (e) {
                 console.error("Firebase setup error:", e);
             }
         };
 
-        function subscribeToLeaderboard() {
-            if (!user || !db) return;
-            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'tax_leaderboard');
-            onSnapshot(colRef, (snapshot) => {
-                let data = [];
-                snapshot.forEach(doc => {
-                    data.push({ id: doc.id, ...doc.data() });
-                });
-                data.sort((a, b) => b.score - a.score);
-                if (window.updateLeaderboardUI) {
-                    window.updateLeaderboardUI(data.slice(0, 50)); 
-                }
-            }, (error) => {
-                console.error("Error fetching leaderboard:", error);
-            });
-        }
-
-        window.saveScoreToCloud = async function(playerName, score) {
+        window.saveScoreToCloud = async function(playerName, totalScore) {
             if (db && user) {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'tax_leaderboard');
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard');
                 try {
                     await addDoc(colRef, {
                         name: playerName,
-                        score: score,
+                        score: totalScore,
                         timestamp: serverTimestamp(),
-                        userId: user.uid
+                        userId: user.uid,
+                        gamePlayed: 'game1'
                     });
                 } catch (error) {
                     console.error("Error saving score:", error);
-                }
-            } else {
-                localLeaderboard.push({ name: playerName, score: score, timestamp: new Date() });
-                localLeaderboard.sort((a, b) => b.score - a.score);
-                if (window.updateLeaderboardUI) {
-                    window.updateLeaderboardUI(localLeaderboard);
                 }
             }
         };
@@ -433,6 +369,18 @@
         let isProcessing = false; 
         let playerName = "Player"; 
 
+        // ตรวจสอบชื่อผู้เล่นเมื่อหน้าจอถูกโหลด
+        window.onload = function() {
+            playerName = localStorage.getItem('playerName');
+            if (!playerName) {
+                // หากผู้เล่นแอบเปิดลิงก์ตรงโดยไม่ผ่านหน้าหลัก ให้เด้งกลับไปหน้าหลัก
+                window.location.href = 'index.html';
+                return;
+            }
+            document.getElementById('ui-welcome-player').innerText = `ยินดีต้อนรับคุณ ${playerName} คนเก่ง! ✨`;
+            document.getElementById('ui-player-name-display').innerText = playerName;
+        };
+
         // ฟังก์ชันสลับหน้าจอ
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(el => {
@@ -441,40 +389,22 @@
             document.getElementById(screenId).classList.remove('hidden');
         }
 
-        // ฟังก์ชันกลับหน้าหลัก
-        function goHome() {
-            document.getElementById('app').classList.remove('animate-pulse-border');
-            showScreen('screen-start');
+        // ฟังก์ชันย้อนกลับไปยังเมนูหลัก
+        function goBackToMenu() {
+            window.location.href = 'index.html';
         }
 
-        // ฟังก์ชันเปิดหน้าดูประวัติคะแนน
-        function showLeaderboardScreen() {
-            showScreen('screen-leaderboard');
-            if (window.latestLeaderboardData) {
-                window.updateLeaderboardUI(window.latestLeaderboardData);
-            }
+        // เริ่มเล่นเกม
+        function startGame() {
+            currentQIndex = 0;
+            score = 0;
+            wrongAttempts = 0;
+            isProcessing = false;
+            
+            document.getElementById('app').classList.remove('animate-pulse-border'); 
+            showScreen('screen-game');
+            loadQuestion();
         }
-
-        // นำชื่อที่เคยพิมพ์ไว้จากหน้าแรกมาใช้
-function startGame() {
-    playerName = localStorage.getItem('playerName');
-    
-    // ถ้าไม่มีชื่อ (แอบเข้าผ่านลิงก์ตรง) ให้เด้งกลับไปหน้าแรก
-    if (!playerName) {
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    document.getElementById('ui-player-name-display').innerText = playerName;
-    currentQIndex = 0;
-    score = 0;
-    wrongAttempts = 0;
-    isProcessing = false;
-    
-    document.getElementById('app').classList.remove('animate-pulse-border');
-    showScreen('screen-game');
-    loadQuestion();
-}
 
         // โหลดคำถามปัจจุบันขึ้นหน้าจอ
         function loadQuestion() {
@@ -483,7 +413,7 @@ function startGame() {
             document.getElementById('ui-score').innerText = score;
             document.getElementById('ui-question').innerText = q.question;
             
-            // รีเซ็ตสถานะหัวใจให้น่ารัก
+            // รีเซ็ตหัวใจนับการผิด
             const heartsHtml = Array(3).fill(0).map((_, i) => {
                 if (i < 3 - wrongAttempts) {
                     return `<i class="fa-solid fa-heart text-red-400 animate-pulse" style="animation-delay: ${i*0.2}s"></i>`;
@@ -493,21 +423,20 @@ function startGame() {
             }).join('');
             document.getElementById('ui-hearts').innerHTML = heartsHtml;
 
-            // ซ่อน Feedback
+            // ซ่อนกล่อง Feedback ข้อความตอบถูก/ผิด
             document.getElementById('ui-feedback-container').classList.add('hidden');
             document.getElementById('ui-explanation-box').classList.add('hidden');
             
             const optionsContainer = document.getElementById('ui-options');
             optionsContainer.innerHTML = '';
             
-            // สร้างปุ่มตัวเลือก แบบมีอนิเมชันเด้งเข้ามา
+            // สุ่มแสดงตัวเลือกและอนิเมชัน
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
                 btn.className = 'cute-btn w-full text-left bg-white border-2 border-pink-100 hover:border-pink-300 hover:bg-pink-50 text-slate-700 font-bold py-4 px-5 rounded-2xl shadow-sm text-base flex justify-between items-center transition-colors';
                 btn.style.animation = `popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards ${index * 0.1}s`;
                 btn.style.opacity = '0';
                 
-                // ตกแต่งตัวเลขนำหน้าตัวเลือก
                 const numBadge = `<span class="bg-pink-100 text-pink-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 font-black shrink-0 border border-pink-200">${index+1}</span>`;
                 
                 btn.innerHTML = `<div class="flex items-center">${numBadge} <span>${opt}</span></div>`;
@@ -515,14 +444,13 @@ function startGame() {
                 optionsContainer.appendChild(btn);
             });
             
-            // รีเฟรชแอนิเมชันกล่องคำถาม
             const qBox = document.getElementById('question-box');
             qBox.classList.remove('animate-pop-in');
             void qBox.offsetWidth; 
             qBox.classList.add('animate-pop-in');
         }
 
-        // ตรวจสอบคำตอบ
+        // ตรวจสอบคำตอบเมื่อผู้เล่นคลิกตัวเลือก
         function checkAnswer(selectedOption, btnElement) {
             if (isProcessing) return; 
             
@@ -538,7 +466,6 @@ function startGame() {
             const explanationText = document.getElementById('ui-explanation-text');
 
             if (isCorrect) {
-                // กรณีตอบถูก
                 isProcessing = true;
                 
                 let pointsEarned = 0;
@@ -549,11 +476,9 @@ function startGame() {
                 score += pointsEarned;
                 document.getElementById('ui-score').innerText = score;
                 
-                // สไตล์ปุ่มที่ตอบถูก
                 btnElement.className = 'w-full text-left bg-green-500 border-2 border-green-600 text-white font-bold py-4 px-5 rounded-2xl shadow-md text-base flex justify-between items-center animate-bounce-soft';
                 btnElement.innerHTML = `<span>${selectedOption}</span> <i class="fa-solid fa-circle-check text-2xl text-white ml-2"></i>`;
                 
-                // แจ้งผลถูกต้อง
                 feedbackContainer.classList.remove('hidden');
                 feedbackBox.className = 'rounded-2xl p-4 text-center border-2 font-bold text-lg flex items-center justify-center gap-3 bg-green-100 text-green-700 border-green-300';
                 feedbackIcon.className = 'fa-solid fa-star text-3xl text-green-500 animate-wiggle';
@@ -562,13 +487,11 @@ function startGame() {
                 explanationBox.classList.remove('hidden');
                 explanationText.innerText = q.explanation;
                 
-                // ปิดปุ่มอื่น
                 buttons.forEach(b => {
                     b.disabled = true;
                     if (b !== btnElement) b.classList.add('opacity-50', 'scale-95');
                 });
 
-                // ยิง Confetti เบาๆ ตอนตอบถูก
                 if(window.confetti) {
                     confetti({
                         particleCount: 40,
@@ -583,14 +506,11 @@ function startGame() {
                 }, 4000);
 
             } else {
-                // กรณีตอบผิด
                 wrongAttempts++;
                 
-                // สั่นปุ่มที่ผิด
                 btnElement.classList.add('animate-wiggle', 'bg-red-50', 'border-red-300', 'text-red-700');
                 setTimeout(() => btnElement.classList.remove('animate-wiggle'), 500);
                 
-                // ลดหัวใจ
                 const heartsHtml = Array(3).fill(0).map((_, i) => {
                     if (i < 3 - wrongAttempts) return `<i class="fa-solid fa-heart text-red-400 animate-pulse" style="animation-delay: ${i*0.2}s"></i>`;
                     else return `<i class="fa-solid fa-heart-crack text-slate-300"></i>`;
@@ -598,12 +518,10 @@ function startGame() {
                 document.getElementById('ui-hearts').innerHTML = heartsHtml;
 
                 if (wrongAttempts >= 3) {
-                    // ผิดครบ 3 ครั้ง
                     isProcessing = true;
                     score -= 5; 
                     document.getElementById('ui-score').innerText = score;
                     
-                    // แจ้งผลโดนหักคะแนน
                     feedbackContainer.classList.remove('hidden');
                     feedbackBox.className = 'rounded-2xl p-4 text-center border-2 font-bold text-lg flex items-center justify-center gap-3 bg-red-100 text-red-700 border-red-300';
                     feedbackIcon.className = 'fa-solid fa-face-sad-tear text-3xl animate-bounce-soft';
@@ -612,7 +530,6 @@ function startGame() {
                     explanationBox.classList.remove('hidden');
                     explanationText.innerHTML = `<span class="text-red-600 font-black">เฉลยคือ: ${q.answer}</span><br><br>${q.explanation}`;
                     
-                    // ไฮไลต์คำตอบที่ถูกต้อง
                     buttons.forEach(b => {
                         b.disabled = true;
                         b.classList.remove('cute-btn');
@@ -629,7 +546,6 @@ function startGame() {
                     }, 5000);
 
                 } else {
-                    // ผิดแต่ยังไม่ครบ 3 ครั้ง
                     feedbackContainer.classList.remove('hidden');
                     feedbackBox.className = 'rounded-2xl p-3 text-center border-2 font-bold text-base flex items-center justify-center gap-2 bg-yellow-50 text-yellow-700 border-yellow-200';
                     feedbackIcon.className = 'fa-solid fa-circle-exclamation text-2xl animate-wiggle';
@@ -642,7 +558,7 @@ function startGame() {
             }
         }
 
-        // เปลี่ยนข้อ หรือจบเกม
+        // ไปยังข้อถัดไปหรือจบเกม
         function nextQuestion() {
             isProcessing = false;
             currentQIndex++;
@@ -655,30 +571,31 @@ function startGame() {
             }
         }
 
-        // อัปเดตคะแนนรวมเมื่อเล่นจบ
-function endGame() {
-    document.getElementById('app').classList.add('animate-pulse-border');
-    document.getElementById('ui-final-score').innerText = score;
-    
-    const msgElement = document.getElementById('ui-result-message');
-    if (score > 80) msgElement.innerText = 'สุดยอด! คุณคือปรมาจารย์!';
-    else if (score > 50) msgElement.innerText = 'เก่งมาก! ทำได้ดีทีเดียว';
-    else msgElement.innerText = 'พยายามได้ดี! ลองศึกษาอีกนิดนะ';
-    
-    // ดึงคะแนนสะสมเดิมมา บวกด้วยคะแนนเกมนี้ แล้วบันทึกกลับไป
-    let globalScore = parseInt(localStorage.getItem('globalScore') || '0');
-    globalScore += score; 
-    localStorage.setItem('globalScore', globalScore);
-
-    // บันทึก "คะแนนรวม" ลงคลาวด์แทนคะแนนเกมเดียว
-    if (window.saveScoreToCloud) {
-        window.saveScoreToCloud(playerName, globalScore);
-    }
-    
-    showScreen('screen-result');
-}
+        // จบการเล่นด่านที่ 1 และรวมคะแนนสะสมหลัก
+        function endGame() {
+            document.getElementById('app').classList.add('animate-pulse-border');
+            document.getElementById('ui-final-score').innerText = score;
             
-            // ยิง Confetti ชุดใหญ่ฉลองตอนจบเกม
+            const msgElement = document.getElementById('ui-result-message');
+            if (score > 80) {
+                msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูทำคะแนนด่านภาษีได้ดีมากๆ!';
+            } else if (score > 50) {
+                msgElement.innerHTML = '🌟 เก่งมากๆ เลยจ้า! 🌟<br>มีความรู้เรื่องภาษีที่ยอดเยี่ยมเลย';
+            } else {
+                msgElement.innerHTML = '💪 พยายามได้ดีมาก! 💪<br>ลองกลับไปฝึกฝนและศึกษาเพิ่มเติมได้น้า!';
+            }
+            
+            // คำนวณคะแนนรวมในระบบสะสมแต้ม
+            let currentGlobalScore = parseInt(localStorage.getItem('globalScore') || '0');
+            currentGlobalScore += score;
+            localStorage.setItem('globalScore', currentGlobalScore);
+
+            // บันทึกคะแนนใหม่ขึ้นสู่คลาวด์เพื่อให้คะแนนอัปเดตบนตารางผู้นำ (Hall of Fame) ในหน้าหลัก
+            if (window.saveScoreToCloud) {
+                window.saveScoreToCloud(playerName, currentGlobalScore);
+            }
+
+            // เล่นเอฟเฟกต์จุดพลุฉลอง
             if(window.confetti) {
                 const duration = 3000;
                 const end = Date.now() + duration;
@@ -704,65 +621,9 @@ function endGame() {
                     }
                 }());
             }
-
-            if (window.saveScoreToCloud) {
-                window.saveScoreToCloud(playerName, score);
-            }
             
             showScreen('screen-result');
         }
-
-        // ฟังก์ชันอัปเดต UI หน้ากระดานคะแนน (Leaderboard) แบบน่ารักๆ
-        window.updateLeaderboardUI = function(data) {
-            window.latestLeaderboardData = data; 
-
-            const containerResult = document.getElementById('leaderboard-container-result');
-            const containerStandalone = document.getElementById('leaderboard-container-standalone');
-            
-            let htmlContent = '';
-            
-            if (!data || data.length === 0) {
-                htmlContent = '<p class="text-pink-400 text-center text-sm py-4 font-bold">ยังไม่มีใครเล่นเลย มาเป็นที่ 1 กันเถอะ! 🏆</p>';
-            } else {
-                data.forEach((entry, index) => {
-                    let rankStyle = "text-slate-500 font-black bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center border-2 border-slate-200";
-                    let icon = index + 1;
-                    
-                    if (index === 0) { 
-                        rankStyle = "text-yellow-600 font-black bg-yellow-100 rounded-full w-9 h-9 flex items-center justify-center border-2 border-yellow-300 shadow-sm"; 
-                        icon = '<i class="fa-solid fa-crown text-base"></i>'; 
-                    }
-                    else if (index === 1) { 
-                        rankStyle = "text-slate-600 font-black bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center border-2 border-slate-300"; 
-                        icon = '2'; 
-                    }
-                    else if (index === 2) { 
-                        rankStyle = "text-orange-600 font-black bg-orange-100 rounded-full w-8 h-8 flex items-center justify-center border-2 border-orange-300"; 
-                        icon = '3'; 
-                    }
-
-                    const isMe = (entry.name === playerName && entry.score === score && score > 0);
-                    const bgClass = isMe ? "bg-gradient-to-r from-pink-100 to-purple-100 border-2 border-pink-300 shadow-sm transform scale-[1.02]" : "bg-white border-2 border-slate-100 hover:border-pink-200";
-
-                    htmlContent += `
-                        <div class="flex justify-between items-center p-3 rounded-2xl ${bgClass} mb-3 transition-all">
-                            <div class="flex items-center gap-3">
-                                <div class="${rankStyle}">${icon}</div>
-                                <span class="text-slate-700 truncate max-w-[120px] sm:max-w-[200px] font-bold text-base sm:text-lg">${entry.name}</span>
-                                ${isMe ? '<span class="text-xs bg-pink-500 text-white px-2 py-1 rounded-full ml-1 font-bold animate-bounce-soft shadow-sm">หนูเอง! ✨</span>' : ''}
-                            </div>
-                            <div class="text-purple-600 font-black text-lg sm:text-xl bg-purple-50 px-4 py-1.5 rounded-full shadow-inner border border-purple-100">
-                                ${entry.score} <span class="text-[10px] font-bold text-purple-400 uppercase">pts</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            
-            if (containerResult) containerResult.innerHTML = htmlContent;
-            if (containerStandalone) containerStandalone.innerHTML = htmlContent;
-        };
-
     </script>
 </body>
 </html>
