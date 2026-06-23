@@ -3,66 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>คลังเกมความรู้สุดสนุก 🎉</title>
+    <title>ศูนย์รวมเกมความรู้</title>
+    <!-- นำเข้า Tailwind CSS และ Font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'ChulaCharas', 'Prompt', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            text-align: center;
-        }
-        .menu-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-            max-width: 400px;
-        }
-        .game-btn {
-            background-color: #ffffff;
-            color: #4a5568;
-            border: none;
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
-            text-decoration: none;
-            text-align: center;
-            display: block;
-        }
-        /* เอฟเฟกต์เวลาเอาเมาส์ไปชี้ หรือกดบนมือถือ */
-        .game-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px rgba(0,0,0,0.15);
-            background-color: #4f46e5;
-            color: white;
-        }
+        body { font-family: 'Mali', cursive; }
+        .arcade-btn { transition: all 0.2s; box-shadow: 0 6px 0 rgba(0,0,0,0.15); }
+        .arcade-btn:active { transform: translateY(6px); box-shadow: 0 0 0 rgba(0,0,0,0); }
     </style>
 </head>
-<body>
+<body class="bg-gradient-to-b from-sky-200 to-indigo-100 min-h-screen text-slate-800 flex flex-col items-center p-4">
 
-    <h1>🎮 เลือกเกมที่ต้องการเล่นได้เลย! 🎮</h1>
+    <h1 class="text-3xl md:text-5xl font-bold text-indigo-700 mt-8 mb-8 text-center drop-shadow-md">
+        🎮 ศูนย์รวมเกมความรู้ 🌟
+    </h1>
 
-    <div class="menu-container">
-        <a href="game1.html" class="game-btn">🎯 เกมที่ 1: ตะลุยโลกภาษี (Tax Game)</a>
-        <a href="game2.html" class="game-btn">🧪 เกมที่ 2: เกมตอบคำถามวิทยาศาสตร์</a>
-        <a href="game3.html" class="game-btn">📚 เกมที่ 3: เกมทดสอบภาษาอังกฤษ</a>
+    <!-- 1. ส่วนกรอกชื่อ (จะแสดงแค่ตอนที่ยังไม่เคยใส่ชื่อ) -->
+    <div id="login-section" class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center border-4 border-indigo-200">
+        <div class="text-5xl mb-4">👋</div>
+        <h2 class="text-xl font-bold mb-4 text-slate-700">ใส่ชื่อของคุณเพื่อเริ่มสะสมคะแนน!</h2>
+        <input type="text" id="player-name" placeholder="พิมพ์ชื่อผู้เล่น..." class="w-full px-4 py-3 rounded-xl text-center border-2 border-indigo-300 focus:outline-none focus:border-indigo-500 mb-6 text-lg font-bold bg-indigo-50/50">
+        <button onclick="saveName()" class="arcade-btn w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-4 px-6 rounded-2xl text-xl">
+            เข้าสู่ระบบ 🚀
+        </button>
     </div>
 
+    <!-- 2. ส่วนเมนูเกมและกระดานคะแนน (จะแสดงก็ต่อเมื่อใส่ชื่อแล้ว) -->
+    <div id="menu-section" class="hidden w-full max-w-md text-center">
+        
+        <!-- ป้ายชื่อผู้เล่น -->
+        <div class="bg-white px-6 py-4 rounded-2xl shadow-md mb-8 border-2 border-indigo-200 flex justify-between items-center">
+            <div>
+                <span class="text-slate-500 text-sm">ยินดีต้อนรับ,</span> <br>
+                <span id="display-name" class="font-bold text-indigo-600 text-xl">Player</span>
+            </div>
+            <button onclick="logout()" class="text-xs bg-red-400 text-white px-3 py-2 rounded-lg hover:bg-red-500 shadow">
+                <i class="fa-solid fa-right-from-bracket"></i> เปลี่ยนชื่อ
+            </button>
+        </div>
+
+        <!-- ปุ่มเลือกเกม -->
+        <div class="space-y-4 mb-10">
+            <a href="game1.html" class="arcade-btn block w-full bg-pink-400 hover:bg-pink-300 text-white font-bold py-4 px-6 rounded-2xl text-xl text-center no-underline">
+                🎯 ตะลุยโลกภาษี (Game 1)
+            </a>
+            <a href="game2.html" class="arcade-btn block w-full bg-orange-400 hover:bg-orange-300 text-white font-bold py-4 px-6 rounded-2xl text-xl text-center no-underline">
+                🧪 วิทยาศาสตร์หรรษา (Game 2)
+            </a>
+        </div>
+
+        <!-- กระดานคะแนนรวมทุกเกม -->
+        <div class="bg-indigo-900 rounded-3xl p-5 border-4 border-indigo-400 shadow-xl text-white">
+            <h3 class="text-yellow-400 font-bold mb-4 text-xl"><i class="fa-solid fa-trophy mr-2"></i> สรุปคะแนนรวมทุกเกม</h3>
+            <div id="leaderboard-container" class="space-y-2 text-left max-h-60 overflow-y-auto pr-2">
+                <p class="text-slate-300 text-center text-sm py-4">กำลังโหลดข้อมูลประวัติคะแนน...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ส่วนของสคริปต์ทำงาน -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let db, auth;
+        window.initFirebase = function() {
+            try {
+                const configString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+                if (!configString) return;
+                const firebaseConfig = JSON.parse(configString);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                
+                signInAnonymously(auth);
+                onAuthStateChanged(auth, (user) => {
+                    if (user) loadLeaderboard();
+                });
+            } catch (e) { console.error("Firebase setup error:", e); }
+        };
+
+        function loadLeaderboard() {
+            if (!db) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // ดึงข้อมูลจากฐานข้อมูลรวม (global_leaderboard)
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard');
+            onSnapshot(colRef, (snapshot) => {
+                let data = [];
+                snapshot.forEach(doc => { data.push({ id: doc.id, ...doc.data() }); });
+                data.sort((a, b) => b.score - a.score); // เรียงคะแนนจากมากไปน้อย
+                window.renderLeaderboard(data.slice(0, 50)); 
+            });
+        }
+        window.initFirebase();
+    </script>
+
+    <script>
+        // ตรวจสอบว่าเคยพิมพ์ชื่อไว้หรือยังตอนโหลดหน้าเว็บ
+        window.onload = function() {
+            const savedName = localStorage.getItem('playerName');
+            if (savedName) {
+                // ถ้าเคยพิมพ์แล้ว ให้ซ่อนหน้าล็อกอิน และโชว์หน้าเมนู
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('menu-section').classList.remove('hidden');
+                document.getElementById('display-name').innerText = savedName;
+            }
+        };
+
+        // ฟังก์ชันบันทึกชื่อผู้เล่น
+        function saveName() {
+            const name = document.getElementById('player-name').value.trim();
+            if (name) {
+                localStorage.setItem('playerName', name);
+                // สร้างตัวแปรเก็บคะแนนรวมเริ่มต้นที่ 0
+                if (!localStorage.getItem('globalScore')) {
+                    localStorage.setItem('globalScore', '0');
+                }
+                location.reload(); 
+            } else {
+                alert("กรุณาใส่ชื่อของคุณก่อนครับ!");
+            }
+        }
+
+        // ฟังก์ชันเปลี่ยนชื่อ
+        function logout() {
+            localStorage.removeItem('playerName');
+            localStorage.removeItem('globalScore');
+            location.reload();
+        }
+
+        // ฟังก์ชันสร้างหน้าตากระดานคะแนน
+        window.renderLeaderboard = function(data) {
+            const container = document.getElementById('leaderboard-container');
+            container.innerHTML = '';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-slate-300 text-center text-sm py-4">ยังไม่มีใครทำคะแนนได้ เป็นคนแรกเลยสิ!</p>';
+                return;
+            }
+            
+            const myName = localStorage.getItem('playerName');
+            data.forEach((entry, index) => {
+                let rankStyle = "text-slate-400";
+                let icon = `${index + 1}.`;
+                if (index === 0) { rankStyle = "text-yellow-400 font-bold"; icon = '👑'; }
+                else if (index === 1) { rankStyle = "text-slate-300 font-bold"; icon = '🥈'; }
+                else if (index === 2) { rankStyle = "text-orange-400 font-bold"; icon = '🥉'; }
+
+                const isMe = (entry.name === myName);
+                const bgClass = isMe ? "bg-indigo-600/80 border border-indigo-400" : "bg-indigo-800/50 border border-transparent";
+
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-3 rounded-xl ${bgClass} mb-2">
+                        <div class="flex items-center gap-3">
+                            <span class="${rankStyle} w-6 text-center">${icon}</span>
+                            <span class="font-bold text-white truncate max-w-[140px]">${entry.name}</span>
+                            ${isMe ? '<span class="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full ml-1">คุณ</span>' : ''}
+                        </div>
+                        <div class="text-yellow-300 font-black text-lg">
+                            ${entry.score} <span class="text-xs font-normal text-indigo-300">pts</span>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+    </script>
 </body>
 </html>
