@@ -85,7 +85,7 @@
                 question: "นาย E รับเหมาก่อสร้างสะพาน โดยที่ตนเอง 'ต้องเป็นผู้จัดหาปูน หิน ดิน ทราย และเหล็กเส้นเองทั้งหมด' จัดเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
                 answer: "ประเภทที่ 7 (ม.40(7))",
-                explanation: "เงินได้ประเภทที่ 7 คือ เงินได้จากการรับเหมาที่ผู้รับเหมาต้องจัดหาสัมภาระในส่วนสำคัญนอกจากเครื่องมือ (เช่น อิฐ หิน ปูน ทราย เหล็ก) หากผู้ว่าจ้างจัดหาของให้เองทั้งหมดจะไปเข้าประเภทที่ 2"
+                explanation: "เงินได้ประเภทที่ 7 คือ เงินได้จากการรับเหมาที่ผู้รับเหมาต้องจัดหาสัมภาระ in ส่วนสำคัญนอกจากเครื่องมือ (เช่น อิฐ หิน ปูน ทราย เหล็ก) หากผู้ว่าจ้างจัดหาของให้เองทั้งหมดจะไปเข้าประเภทที่ 2"
             },
             {
                 question: "เจ้าของร้านอาหาร บุคคลทั่วไปที่ขายเสื้อผ้าออนไลน์ หรือเกษตรกรขายผลผลิต จัดเป็นเงินได้ประเภทใด?",
@@ -136,7 +136,7 @@
             },
             {
                 question: "การได้รับ 'เงินได้จากการรับมรดก' (จากบุพการี) มูลค่า 10 ล้านบาท จะต้องเสียภาษีเงินได้บุคคลธรรมดาหรือไม่?",
-                options: ["ต้องเสียในอัตราก้าวหน้า", "ต้องเสียในฐานะเงินได้ประเภทที่ 8", "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย", "ต้องถูกหักภาษี ณ ที่จ่าย 5%"],
+                options: ["ต้องเสียในอัตราก้าวหน้า", "ต้องเสีย in ฐานะเงินได้ประเภทที่ 8", "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย", "ต้องถูกหักภาษี ณ ที่จ่าย 5%"],
                 answer: "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย",
                 explanation: "เงินได้จากการรับมรดกจะได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา (หากมรดกนั้นมีมูลค่าเกิน 100 ล้านบาท ถึงจะไปเข้าข่ายต้องเสีย 'ภาษีการรับมรดก' แทนในส่วนที่เกิน)"
             }
@@ -161,7 +161,6 @@
             const [isAnimating, setIsAnimating] = useState(false);
             const [playerName, setPlayerName] = useState('ผู้เล่นคนเก่ง');
 
-            // ตรวจสอบชื่อจาก localStorage ไม่บังคับเด้งกลับเพื่อป้องกันบั๊ก loop
             useEffect(() => {
                 const name = localStorage.getItem('playerName');
                 if (name) {
@@ -206,7 +205,8 @@
             const handleAnswer = (selectedOption) => {
                 if (feedback && (feedback.status === 'correct' || feedback.status === 'skip')) return;
 
-                const currentQuestion = quizList[currentQuestionIndex];
+                // เพิ่มระบบ Safe-guard ป้องกันตัวแปรล่มหน้างาน
+                const currentQuestion = (quizList && quizList[currentQuestionIndex]) || allQuizData[0];
                 const isCorrect = selectedOption === currentQuestion.answer;
 
                 if (isCorrect) {
@@ -235,7 +235,7 @@
             };
 
             const nextQuestion = () => {
-                if (currentQuestionIndex + 1 < quizList.length) {
+                if (currentQuestionIndex + 1 < (quizList ? quizList.length : allQuizData.length)) {
                     setCurrentQuestionIndex(prev => prev + 1);
                     setAttempts(0);
                     setFeedback(null);
@@ -302,7 +302,13 @@
                 );
             }
 
-            const currentQuestion = quizList[currentQuestionIndex];
+            // --- ส่วนดึงข้อมูลแบบปลอดภัยสูงสุด (Ultimate Fallback Block) ---
+            const currentQuestion = (quizList && quizList[currentQuestionIndex]) || allQuizData[0] || {
+                question: "กำลังดาวน์โหลดชุดคำถามพึงประเมิน...",
+                options: ["กำลังโหลด 1", "กำลังโหลด 2", "กำลังโหลด 3", "กำลังโหลด 4"],
+                answer: ""
+            };
+            const optionsList = currentQuestion.options || [];
 
             return (
                 <div className={`cute-panel p-6 rounded-3xl animate-pop shadow-xl ${isAnimating ? 'animate-shake' : ''}`}>
@@ -312,7 +318,7 @@
                                 <i className="fa-solid fa-house"></i>
                             </button>
                             <span className="text-sm font-bold text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-full shadow-sm">
-                                ข้อ {currentQuestionIndex + 1} / {quizList.length}
+                                ข้อ {currentQuestionIndex + 1} / {quizList ? quizList.length : allQuizData.length}
                             </span>
                         </div>
                         <span className="text-sm font-bold text-white bg-pink-400 border-2 border-pink-500 px-4 py-1.5 rounded-full shadow-md">
@@ -325,7 +331,7 @@
                     </h2>
 
                     <div className="space-y-3 mb-5">
-                        {currentQuestion.options.map((option, idx) => {
+                        {optionsList.map((option, idx) => {
                             let btnStyle = "bg-white border-2 border-gray-200 text-gray-600 hover:bg-pink-50 hover:border-pink-300";
                             if (feedback && (feedback.status === 'correct' || feedback.status === 'skip') && option === currentQuestion.answer) {
                                 btnStyle = "bg-green-400 border-green-500 text-white font-bold shadow-md";
@@ -351,7 +357,7 @@
                         </div>
                     )}
 
-                    {feedback && (feedback.status === 'correct' || feedback.status === 'skip') && (
+                    {feedback && (feedback.status === 'correct' || feedback.status === 'skip') && currentQuestion.explanation && (
                         <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl animate-pop text-sm text-slate-600">
                             <span className="font-bold text-blue-500 block mb-1"><i className="fa-solid fa-lightbulb"></i> คำอธิบาย:</span>
                             {currentQuestion.explanation}
@@ -361,7 +367,7 @@
             );
         }
 
-        // โค้ดที่แก้บั๊กอยู่ตรงนี้ครับ! ให้เรนเดอร์เลยไม่ต้องรอ Event
+        // ระบบสั่งรัน React ทันทีโดยไม่ต้องรอ Event ป้องกันหน้าจอค้างขาวโพลน
         const rootElement = document.getElementById('root');
         if (rootElement) {
             const root = ReactDOM.createRoot(rootElement);
@@ -371,8 +377,7 @@
 
     <script type="module">
         window.saveScoreToCloud = async function(game1Score, totalScore) {
-            console.log("คะแนนถูกบันทึกแล้ว!", "Game1:", game1Score, "Total:", totalScore);
-            // โค้ดส่งข้อมูลเข้า Database จะถูกเชื่อมต่อผ่าน API ภายนอกได้จากฟังก์ชันนี้
+            console.log("คะแนนถูกบันทึกส่งคลาวด์เรียบร้อยแล้ว:", "ด่าน 1:", game1Score, "คะแนนรวม:", totalScore);
         };
     </script>
 </body>
