@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เกมภาษีพาสนุก ม.40</title>
+    <!-- โหลด Tailwind CSS และไลบรารีสําหรับทําเอฟเฟกต์ตกแต่ง -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -19,11 +17,14 @@
             background-image: radial-gradient(#e9d5ff 2px, transparent 2px);
             background-size: 32px 32px;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         .cute-panel {
             background: rgba(255, 255, 255, 0.95);
             border: 4px solid #fbcfe8;
             box-shadow: 0 12px 30px rgba(244, 63, 94, 0.08);
+            position: relative;
+            z-index: 10;
         }
         @keyframes pop {
             0% { transform: scale(0.95); opacity: 0; }
@@ -36,14 +37,39 @@
             75% { transform: translateX(6px); }
         }
         .animate-shake { animation: shake 0.35s ease-in-out; }
+        .option-btn {
+            width: 100%; text-align: left; padding: 1rem; border-radius: 1rem;
+            font-weight: 600; font-size: 0.95rem; transition: all 0.2s;
+            border: 2px solid #f3f4f6; background-color: white; color: #4b5563;
+        }
+        .option-btn:not(:disabled):hover { border-color: #f9a8d4; background-color: #fdf2f8; transform: scale(0.98); }
+        .option-btn:disabled { opacity: 0.8; cursor: not-allowed; }
+        .option-correct { background-color: #4ade80 !important; border-color: #22c55e !important; color: white !important; font-weight: bold; }
+        .option-incorrect { background-color: #fca5a5 !important; border-color: #ef4444 !important; color: white !important; }
+        
+        /* สไตล์ไอคอนดุ๊กดิ๊กด้านข้าง */
+        .floating-deco {
+            position: absolute; pointer-events: none; animation: float 3s ease-in-out infinite; z-index: 1;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
-    <div id="root" class="w-full max-w-xl"></div>
+<body class="flex items-center justify-center p-4 min-h-screen relative">
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <!-- ของตกแต่งรอบๆ จอเพิ่มความกิ๊บเก๋ตามภาพตัวอย่าง -->
+    <div class="floating-deco text-4xl left-8 top-12 opacity-40 hidden md:block">🌸</div>
+    <div class="floating-deco text-4xl right-12 top-20 opacity-40 hidden md:block" style="animation-delay: 1s;">🌟</div>
+    <div class="floating-deco text-4xl left-16 bottom-16 opacity-40 hidden md:block" style="animation-delay: 1.5s;">🎈</div>
+    <div class="floating-deco text-4xl right-20 bottom-24 opacity-40 hidden md:block" style="animation-delay: 2s;">✨</div>
 
+    <!-- กล่องหลักที่จะแสดงผลเกม -->
+    <div id="game-app" class="w-full max-w-xl"></div>
+
+    <script>
+        // ข้อมูลข้อสอบ 15 ข้อแบบดั้งเดิม
         const allQuizData = [
             {
                 question: "นาย A เป็นพนักงานบริษัทเอกชน ได้รับ 'เงินเดือน' และ 'โบนัส' สิ้นปี ถือเป็นเงินได้พึงประเมินประเภทใด?",
@@ -67,7 +93,7 @@
                 question: "นาย C นำเงินไปลงทุนและฝากธนาคาร จนได้รับ 'ดอกเบี้ยเงินฝาก' และ 'เงินปันผลจากหุ้น' ถือเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 8 (ม.40(8))"],
                 answer: "ประเภทที่ 4 (ม.40(4))",
-                explanation: "เงินได้ประเภทที่ 4 คือ เงินได้จากการลงทุนในสินทรัพย์ทางการเงิน (Capital) เช่น ดอกเบี้ยเงินฝาก เงินปันผล ส่วนแบ่งกำไร และกำไรจากสินทรัพย์ดิจิทัล"
+                explanation: "เงินได้ประเภทที่ 4 คือ เงินได้จากการลงทุนในสินทรัพย์ทางการเงิน เช่น ดอกเบี้ยเงินฝาก เงินปันผล ส่วนแบ่งกำไร และกำไรจากสินทรัพย์ดิจิทัล"
             },
             {
                 question: "นาง D มีตึกแถวว่าง 1 คูหา จึงเปิดให้ผู้สนใจมาเช่าทำร้านค้า ได้รับ 'ค่าเช่าตึก' ทุกเดือน ถือเป็นเงินได้ประเภทใด?",
@@ -85,7 +111,7 @@
                 question: "นาย E รับเหมาก่อสร้างสะพาน โดยที่ตนเอง 'ต้องเป็นผู้จัดหาปูน หิน ดิน ทราย และเหล็กเส้นเองทั้งหมด' จัดเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
                 answer: "ประเภทที่ 7 (ม.40(7))",
-                explanation: "เงินได้ประเภทที่ 7 คือ เงินได้จากการรับเหมาที่ผู้รับเหมาต้องจัดหาสัมภาระ in ส่วนสำคัญนอกจากเครื่องมือ (เช่น อิฐ หิน ปูน ทราย เหล็ก) หากผู้ว่าจ้างจัดหาของให้เองทั้งหมดจะไปเข้าประเภทที่ 2"
+                explanation: "เงินได้ประเภทที่ 7 คือ เงินได้จากการรับเหมาที่ผู้รับเหมาต้องจัดหาสัมภาระในส่วนสำคัญนอกจากเครื่องมือ หากผู้ว่าจ้างจัดหาของให้เองทั้งหมดจะไปเข้าประเภทที่ 2"
             },
             {
                 question: "เจ้าของร้านอาหาร บุคคลทั่วไปที่ขายเสื้อผ้าออนไลน์ หรือเกษตรกรขายผลผลิต จัดเป็นเงินได้ประเภทใด?",
@@ -103,18 +129,18 @@
                 question: "ข้อใดคือการแยกแยะระหว่างเงินได้ประเภทที่ 1 และประเภทที่ 2 ได้ถูกต้องที่สุด?",
                 options: [
                     "ประเภท 1 หักค่าใช้จ่ายไม่ได้ ส่วนประเภท 2 หักได้ไม่จำกัด",
-                    "ประเภท 1 มีความสัมพันธ์แบบนายจ้าง-ลูกจ้าง (คุมเวลา) ส่วนประเภท 2 รับจ้างอิสระ เน้นผลสำเร็จของงาน",
+                    "ประเภท 1 มีความสัมพันธ์นายจ้าง-ลูกจ้าง ส่วนประเภท 2 รับจ้างอิสระ เน้นผลสำเร็จงาน",
                     "ประเภท 1 ได้รับเป็นเงินสดเท่านั้น ส่วนประเภท 2 รับเป็นหุ้น",
                     "ทั้งสองประเภทไม่มีความแตกต่างกันเลยในทางกฎหมาย"
                 ],
-                answer: "ประเภท 1 มีความสัมพันธ์แบบนายจ้าง-ลูกจ้าง (คุมเวลา) ส่วนประเภท 2 รับจ้างอิสระ เน้นผลสำเร็จของงาน",
+                answer: "ประเภท 1 มีความสัมพันธ์นายจ้าง-ลูกจ้าง ส่วนประเภท 2 รับจ้างอิสระ เน้นผลสำเร็จงาน",
                 explanation: "เงินได้ประเภทที่ 1 (จ้างแรงงาน) จะมีสัญญาจ้างและสวัสดิการพนักงาน ส่วนประเภทที่ 2 (รับทำงานให้) จะเป็นการจ้างทำของหรือทำงานชั่วคราว ไม่มีสถานะเป็นลูกจ้างประจำ"
             },
             {
                 question: "เงินได้ประเภทใดต่อไปนี้ เมื่อนำมารวมกันแล้ว 'หักค่าใช้จ่ายแบบเหมาได้ 50% แต่สูงสุดรวมกันต้องไม่เกิน 100,000 บาท'?",
                 options: ["ประเภทที่ 1 และ 2", "ประเภทที่ 3 และ 4", "ประเภทที่ 5 อย่างเดียว", "ประเภทที่ 8 ทั้งหมด"],
                 answer: "ประเภทที่ 1 และ 2",
-                explanation: "ตามกฎหมาย ให้นำเงินได้ประเภทที่ 1 (เช่น เงินเดือน) และประเภทที่ 2 (เช่น ค่านายหน้า/รับจ้างทั่วไป) มารวมกันก่อน แล้วจึงหักค่าใช้จ่ายแบบเหมาได้ 50% แต่รวมกันต้องไม่เกิน 100,000 บาท"
+                explanation: "ตามกฎหมาย ให้นำเงินได้ประเภทที่ 1 และประเภทที่ 2 มารวมกันก่อน แล้วจึงหักค่าใช้จ่ายแบบเหมาได้ 50% แต่รวมกันต้องไม่เกิน 100,000 บาท"
             },
             {
                 question: "นาย F เทรดคริปโทเคอร์เรนซี (Cryptocurrency) และ 'ได้กำไรจากการขาย' กำไรส่วนนี้ถือเป็นเงินได้ประเภทใด?",
@@ -123,261 +149,309 @@
                 explanation: "ผลประโยชน์หรือกำไรที่ได้จากการโอนคริปโทเคอร์เรนซี หรือโทเคนดิจิทัล ถูกจัดให้อยู่ในหมวดเงินได้ประเภทที่ 4 (กลุ่มเดียวกับดอกเบี้ยและเงินปันผล)"
             },
             {
-                question: "ยูทูบเบอร์ (YouTuber) ที่ทำช่องของตัวเองและมีรายได้จาก 'ส่วนแบ่งค่าโฆษณา (AdSense)' จัดเป็นเงินได้ประเภทใด?",
+                question: "ยูทูบเบอร์ (YouTuber) ที่มีรายได้จาก 'ส่วนแบ่งค่าโฆษณา (AdSense)' จัดเป็นเงินได้ประเภทใด?",
                 options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 8 (ม.40(8))"],
                 answer: "ประเภทที่ 8 (ม.40(8))",
-                explanation: "รายได้จากส่วนแบ่งโฆษณา (AdSense) บนแพลตฟอร์มต่างๆ ถือเป็นการทำธุรกิจเชิงพาณิชย์ จึงตกเป็นเงินได้ประเภทที่ 8 (แต่ถ้ารับจ้างรีวิวสินค้าชิ้นๆ อาจเป็นประเภทที่ 2 หรือ 8 ขึ้นอยู่กับรูปแบบงาน)"
+                explanation: "รายได้จากส่วนแบ่งโฆษณา (AdSense) บนแพลตฟอร์มต่างๆ ถือเป็นการทำธุรกิจเชิงพาณิชย์ จึงตกเป็นเงินได้ประเภทที่ 8"
             },
             {
                 question: "นาง G 'ถูกรางวัลสลากกินแบ่งรัฐบาล' (ลอตเตอรี่) เงินรางวัลที่ได้รับจะต้องนำมารวมคำนวณเสียภาษีตอนปลายปีหรือไม่?",
                 options: ["ต้องนำมารวมคำนวณทั้งหมด", "ต้องนำมารวมเป็นเงินได้ประเภทที่ 8", "ไม่ต้องนำมารวมเพราะได้รับการยกเว้น", "ต้องนำมารวมและหักค่าใช้จ่ายได้ 50%"],
                 answer: "ไม่ต้องนำมารวมเพราะได้รับการยกเว้น",
-                explanation: "เงินรางวัลจากการถูกสลากกินแบ่งรัฐบาล ได้รับสิทธิยกเว้นไม่ต้องนำมารวมคำนวณภาษีเงินได้บุคคลธรรมดา (แต่ผู้ถูกรางวัลจะถูกหักอากรแสตมป์ 0.5% ของเงินรางวัล ณ วันที่ไปขึ้นเงินแล้ว)"
+                explanation: "เงินรางวัลจากการถูกสลากกินแบ่งรัฐบาล ได้รับสิทธิยกเว้นไม่ต้องนำมารวมคำนวณภาษีเงินได้บุคคลธรรมดา (แต่ผู้ถูกรางวัลจะถูกหักอากรแสตมป์ 0.5% ณ วันที่ไปขึ้นเงินแล้ว)"
             },
             {
                 question: "การได้รับ 'เงินได้จากการรับมรดก' (จากบุพการี) มูลค่า 10 ล้านบาท จะต้องเสียภาษีเงินได้บุคคลธรรมดาหรือไม่?",
-                options: ["ต้องเสียในอัตราก้าวหน้า", "ต้องเสีย in ฐานะเงินได้ประเภทที่ 8", "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย", "ต้องถูกหักภาษี ณ ที่จ่าย 5%"],
+                options: ["ต้องเสียในอัตราก้าวหน้า", "ต้องเสียในฐานะเงินได้ประเภทที่ 8", "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย", "ต้องถูกหักภาษี ณ ที่จ่าย 5%"],
                 answer: "ไม่ต้องเสียเพราะได้รับยกเว้นตามกฎหมาย",
-                explanation: "เงินได้จากการรับมรดกจะได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา (หากมรดกนั้นมีมูลค่าเกิน 100 ล้านบาท ถึงจะไปเข้าข่ายต้องเสีย 'ภาษีการรับมรดก' แทนในส่วนที่เกิน)"
+                explanation: "เงินได้จากการรับมรดกจะได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา (หากมรดกนั้นมีมูลค่าเกิน 100 ล้านบาท ถึงจะไปเข้าข่ายต้องเสีย 'ภาษีการรับมรดก')"
             }
         ];
 
-        const shuffleArray = (array) => {
-            const newArr = [...array];
-            for (let i = newArr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-            }
-            return newArr;
-        };
+        // สเตตัสและตัวแปรของเกม
+        let gameState = 'start'; 
+        let quizList = [];
+        let currentIndex = 0;
+        let score = 0;
+        let attempts = 0;
+        let feedback = null; // { isCorrect: true/false, message: '' }
+        let playerName = localStorage.getItem('playerName') || 'ผู้เล่นคนเก่ง';
 
-        function App() {
-            const [gameState, setGameState] = useState('start'); 
-            const [quizList, setQuizList] = useState(allQuizData);
-            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-            const [score, setScore] = useState(0);
-            const [attempts, setAttempts] = useState(0);
-            const [feedback, setFeedback] = useState(null); 
-            const [isAnimating, setIsAnimating] = useState(false);
-            const [playerName, setPlayerName] = useState('ผู้เล่นคนเก่ง');
+        // ฟังก์ชันสุ่มข้อสอบ
+        function shuffleQuestions() {
+            quizList = [...allQuizData].sort(() => Math.random() - 0.5);
+        }
 
-            useEffect(() => {
-                const name = localStorage.getItem('playerName');
-                if (name) {
-                    setPlayerName(name);
+        // เริ่มเกม
+        function startGame() {
+            shuffleQuestions();
+            gameState = 'playing';
+            currentIndex = 0;
+            score = 0;
+            attempts = 0;
+            feedback = null;
+            render();
+        }
+
+        // ประมวลผลคำตอบ
+        function handleAnswer(selectedOption, buttonElement, index) {
+            if (feedback && (feedback.status === 'correct' || feedback.status === 'skip')) return;
+
+            const currentQuestion = quizList[currentIndex];
+            const isCorrect = selectedOption === currentQuestion.answer;
+
+            if (isCorrect) {
+                let points = 10;
+                if (attempts === 1) points = 5;
+                else if (attempts === 2) points = 2;
+
+                score += points;
+                feedback = { status: 'correct', message: `🎉 ยอดเยี่ยม! ตอบถูกรับ +${points} คะแนน` };
+                
+                // อัปเดตสีปุ่ม
+                buttonElement.classList.add('option-correct');
+                
+                // ไปข้อถัดไปหลังจากหน่วงเวลา 3 วินาที
+                setTimeout(() => {
+                    nextQuestion();
+                }, 3000);
+            } else {
+                attempts += 1;
+                buttonElement.classList.add('option-incorrect');
+                buttonElement.disabled = true;
+
+                // เขย่าหน้าจอเมื่อตอบผิด
+                const panel = document.querySelector('.cute-panel');
+                if (panel) {
+                    panel.classList.add('animate-shake');
+                    setTimeout(() => panel.classList.remove('animate-shake'), 500);
                 }
-            }, []);
 
-            useEffect(() => {
-                if (gameState === 'end') {
-                    localStorage.setItem('game1Score', score);
-
-                    const g2Score = parseInt(localStorage.getItem('game2Score') || '0');
-                    const currentGlobalScore = score + g2Score;
-                    localStorage.setItem('globalScore', currentGlobalScore);
-
-                    if (typeof window.saveScoreToCloud === 'function') {
-                        window.saveScoreToCloud(score, currentGlobalScore);
-                    }
-
-                    if(window.confetti) {
-                        const duration = 2500;
-                        const end = Date.now() + duration;
-                        (function frame() {
-                            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f472b6', '#a78bfa', '#facc15'] });
-                            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f472b6', '#a78bfa', '#facc15'] });
-                            if (Date.now() < end) { requestAnimationFrame(frame); }
-                        }());
-                    }
-                }
-            }, [gameState, score]);
-
-            const startGame = () => {
-                const shuffled = shuffleArray(allQuizData);
-                setQuizList(shuffled);
-                setCurrentQuestionIndex(0);
-                setScore(0);
-                setAttempts(0);
-                setFeedback(null);
-                setGameState('playing'); 
-            };
-
-            const handleAnswer = (selectedOption) => {
-                if (feedback && (feedback.status === 'correct' || feedback.status === 'skip')) return;
-
-                // เพิ่มระบบ Safe-guard ป้องกันตัวแปรล่มหน้างาน
-                const currentQuestion = (quizList && quizList[currentQuestionIndex]) || allQuizData[0];
-                const isCorrect = selectedOption === currentQuestion.answer;
-
-                if (isCorrect) {
-                    let points = 10;
-                    if (attempts === 1) points = 5;
-                    else if (attempts === 2) points = 2;
-
-                    setScore(prev => prev + points);
-                    setFeedback({ status: 'correct', message: `🎉 ถูกต้องยอดเยี่ยม! ได้รับ +${points} คะแนน` });
+                if (attempts >= 3) {
+                    score = Math.max(0, score - 5); // หักคะแนน
+                    feedback = { status: 'skip', message: `😭 ผิดครบ 3 ครั้งแล้ว! โดนหัก -5 คะแนน และข้ามข้อ` };
                     
-                    setTimeout(() => { nextQuestion(); }, 3000);
+                    // ไปข้อถัดไปหลังจากหน่วงเวลา 4 วินาที
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 4000);
                 } else {
-                    const nextAttempts = attempts + 1;
-                    setIsAnimating(true);
-                    setTimeout(() => setIsAnimating(false), 500); 
-
-                    if (nextAttempts >= 3) {
-                        setScore(prev => Math.max(0, prev - 5)); 
-                        setFeedback({ status: 'skip', message: `😭 ผิดครบ 3 ครั้งแล้ว! ระบบขอข้ามและหักคะแนน -5 แต้ม` });
-                        setTimeout(() => { nextQuestion(); }, 4000);
-                    } else {
-                        setAttempts(nextAttempts);
-                        setFeedback({ status: 'incorrect', message: `❌ ยังไม่ถูกนะ! ลองคิดใหม่อีกที (เหลืออีก ${3 - nextAttempts} ครั้ง)` });
-                    }
+                    feedback = { status: 'incorrect', message: `❌ ยังไม่ถูกนะ! ลองใหม่ (เหลืออีก ${3 - attempts} โอกาส)` };
                 }
-            };
+            }
+            renderFeedbackAndExplanation();
+        }
 
-            const nextQuestion = () => {
-                if (currentQuestionIndex + 1 < (quizList ? quizList.length : allQuizData.length)) {
-                    setCurrentQuestionIndex(prev => prev + 1);
-                    setAttempts(0);
-                    setFeedback(null);
-                } else {
-                    setGameState('end');
-                }
-            };
+        // ไปข้อถัดไป
+        function nextQuestion() {
+            if (currentIndex + 1 < quizList.length) {
+                currentIndex += 1;
+                attempts = 0;
+                feedback = null;
+                render();
+            } else {
+                endGame();
+            }
+        }
+
+        // จบเกม
+        function endGame() {
+            gameState = 'end';
+            // บันทึกสถิติภายในเครื่อง
+            localStorage.setItem('game1Score', score);
+            const g2Score = parseInt(localStorage.getItem('game2Score') || '0');
+            const totalScore = score + g2Score;
+            localStorage.setItem('globalScore', totalScore);
+
+            // ส่งคะแนนขึ้นคลาวด์ไปยัง แอดมิน coco
+            if (typeof window.saveScoreToCloud === 'function') {
+                window.saveScoreToCloud(score, totalScore);
+            }
+
+            render();
+
+            // พลุเฉลิมฉลอง
+            if (window.confetti) {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        // เรนเดอร์หน้าจอหลัก
+        function render() {
+            const container = document.getElementById('game-app');
+            if (!container) return;
 
             if (gameState === 'start') {
-                return (
-                    <div className="cute-panel p-8 rounded-3xl text-center animate-pop">
-                        <div className="mb-4 inline-block bg-pink-100 p-4 rounded-full text-pink-500 shadow-sm border border-pink-200">
-                            <i className="fa-solid fa-gamepad text-5xl"></i>
+                container.innerHTML = `
+                    <div class="cute-panel text-center animate-pop rounded-3xl p-8">
+                        <div class="mb-4 inline-block bg-pink-100 p-4 rounded-full text-pink-500 shadow-sm">
+                            <i class="fa-solid fa-gamepad text-5xl"></i>
                         </div>
-                        <h1 className="text-3xl font-bold text-purple-600 mb-2">เกมที่ 1: ตะลุยโลกภาษี</h1>
-                        <p className="text-gray-500 mb-6 text-sm">ยินดีต้อนรับ <span className="font-bold text-pink-500">{playerName}</span>! ✨ มาท้าทายความรู้กัน</p>
+                        <h1 class="text-3xl font-bold text-purple-600 mb-2">เกมที่ 1: ตะลุยโลกภาษี</h1>
+                        <p class="text-gray-600 mb-6 text-sm">ยินดีต้อนรับ <span class="font-bold text-pink-500">${playerName}</span>! ✨ มาท้าทายความรู้กัน</p>
                         
-                        <div className="bg-pink-50 border-2 border-pink-100 p-5 rounded-2xl mb-6 text-left text-sm text-gray-700">
-                            <h3 className="font-bold text-pink-600 mb-3 text-base">⭐ กติกาการเล่น:</h3>
-                            <div className="space-y-2">
-                                <p className="flex items-center gap-2"><span className="bg-green-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">1</span> ตอบถูกครั้งแรก: <span className="text-green-600 font-bold">+10 คะแนน</span></p>
-                                <p className="flex items-center gap-2"><span className="bg-blue-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">2</span> ตอบถูกครั้งที่ 2: <span className="text-blue-600 font-bold">+5 คะแนน</span></p>
-                                <p className="flex items-center gap-2"><span className="bg-purple-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</span> ตอบถูกครั้งที่ 3: <span className="text-purple-600 font-bold">+2 คะแนน</span></p>
-                            </div>
-                            <div className="mt-4 bg-red-100 text-red-700 p-3 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2">
-                                <i className="fa-solid fa-triangle-exclamation text-lg"></i> ตอบผิด 3 ครั้ง: -5 คะแนน และบังคับข้าม!
+                        <div class="bg-pink-50 border-2 border-pink-100 p-5 rounded-2xl mb-6 text-left text-sm text-gray-700">
+                            <h3 class="font-bold text-pink-600 mb-2"><i class="fa-solid fa-circle-info mr-1"></i> กติกาการเล่น (สุ่ม 15 ข้อ):</h3>
+                            <ul class="space-y-1.5 mb-3 font-medium">
+                                <li>✅ ตอบถูกครั้งแรก รับ <strong class="text-green-600">+10 คะแนน</strong></li>
+                                <li>✅ ตอบถูกครั้งที่สอง รับ <strong class="text-blue-600">+5 คะแนน</strong></li>
+                                <li>✅ ตอบถูกครั้งที่สาม รับ <strong class="text-purple-600">+2 คะแนน</strong></li>
+                            </ul>
+                            <div class="bg-red-100 text-red-700 p-2.5 rounded-lg font-bold text-xs flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i> ตอบผิด 3 ครั้ง: โดนหัก -5 คะแนน & ข้ามทันที!
                             </div>
                         </div>
 
-                        <div className="space-y-3">
-                            <button onClick={startGame} className="w-full bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold py-4 rounded-full shadow-md text-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-                                เริ่มตะลุยด่าน! <i className="fa-solid fa-paper-plane"></i>
+                        <div class="space-y-3">
+                            <button onclick="startGame()" class="w-full bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 text-white font-bold py-4 rounded-full shadow-lg text-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+                                เริ่มตะลุยด่าน (สุ่มข้อสอบ)! <i class="fa-solid fa-paper-plane"></i>
                             </button>
-                            <button onClick={() => window.location.href = 'index.html'} className="w-full bg-white hover:bg-gray-50 text-gray-500 border-2 border-gray-200 font-bold py-3.5 rounded-full shadow-sm text-base flex items-center justify-center gap-2">
-                                <i className="fa-solid fa-house"></i> กลับหน้าหลัก
+                            <button onclick="window.location.href='index.html'" class="w-full bg-white text-gray-500 border-2 border-gray-200 font-bold py-3 rounded-full hover:bg-gray-50 flex items-center justify-center gap-2 shadow-sm">
+                                <i class="fa-solid fa-house"></i> กลับหน้าหลัก
                             </button>
                         </div>
                     </div>
-                );
-            }
-
-            if (gameState === 'end') {
-                return (
-                    <div className="cute-panel p-8 rounded-3xl text-center animate-pop">
-                        <div className="text-6xl mb-4">🏆</div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">เก่งมาก! ทำครบ 15 ข้อแล้ว</h2>
-                        <p className="text-gray-500 text-sm mb-6">คะแนนของคุณถูกบันทึกและส่งเข้าตารางแอดมินเรียบร้อยแล้ว!</p>
-
-                        <div className="bg-purple-50 border-2 border-purple-100 py-5 px-8 rounded-3xl inline-block mb-8 shadow-inner">
-                            <span className="block text-sm text-purple-500 font-bold mb-1">คะแนนที่คุณทำได้</span>
-                            <span className="text-6xl font-black text-purple-600 drop-shadow-md">{score}</span>
-                            <span className="text-sm font-bold text-purple-400 ml-1">/ 150</span>
-                        </div>
-                        
-                        <div className="space-y-3">
-                            <button onClick={startGame} className="w-full bg-green-400 hover:bg-green-500 text-white font-bold py-4 rounded-full shadow-md text-base transition-transform active:scale-95">
-                                <i className="fa-solid fa-rotate-left mr-1"></i> เล่นอีกรอบ (สุ่มใหม่)
-                            </button>
-                            <button onClick={() => window.location.href = 'index.html'} className="w-full bg-white hover:bg-gray-50 text-gray-600 border-2 border-gray-200 font-bold py-3.5 rounded-full shadow-sm text-base">
-                                <i className="fa-solid fa-house mr-1"></i> ดูคะแนนรวมที่หน้าหลัก
-                            </button>
-                        </div>
-                    </div>
-                );
-            }
-
-            // --- ส่วนดึงข้อมูลแบบปลอดภัยสูงสุด (Ultimate Fallback Block) ---
-            const currentQuestion = (quizList && quizList[currentQuestionIndex]) || allQuizData[0] || {
-                question: "กำลังดาวน์โหลดชุดคำถามพึงประเมิน...",
-                options: ["กำลังโหลด 1", "กำลังโหลด 2", "กำลังโหลด 3", "กำลังโหลด 4"],
-                answer: ""
-            };
-            const optionsList = currentQuestion.options || [];
-
-            return (
-                <div className={`cute-panel p-6 rounded-3xl animate-pop shadow-xl ${isAnimating ? 'animate-shake' : ''}`}>
-                    <div className="flex justify-between items-center mb-5 pb-3 border-b-2 border-dashed border-purple-100">
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => window.location.href = 'index.html'} className="bg-gray-100 hover:bg-pink-100 text-gray-500 hover:text-pink-600 transition-colors w-10 h-10 rounded-full flex items-center justify-center">
-                                <i className="fa-solid fa-house"></i>
-                            </button>
-                            <span className="text-sm font-bold text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-full shadow-sm">
-                                ข้อ {currentQuestionIndex + 1} / {quizList ? quizList.length : allQuizData.length}
+                `;
+            } else if (gameState === 'playing') {
+                const currentQuestion = quizList[currentIndex];
+                
+                container.innerHTML = `
+                    <div class="cute-panel animate-pop rounded-3xl p-6 sm:p-8">
+                        <div class="flex justify-between items-center mb-5 pb-3 border-b-2 border-dashed border-purple-100">
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.location.href='index.html'" class="bg-gray-100 hover:bg-pink-100 text-gray-500 w-10 h-10 rounded-full flex justify-center items-center transition-colors shadow-sm">
+                                    <i class="fa-solid fa-house"></i>
+                                </button>
+                                <span class="text-sm font-bold text-purple-600 bg-purple-50 px-3.5 py-1.5 rounded-full border border-purple-100">
+                                    ข้อ ${currentIndex + 1} / ${quizList.length}
+                                </span>
+                            </div>
+                            <span class="text-sm font-bold text-white bg-pink-400 px-4 py-2 rounded-full shadow-md">
+                                คะแนนสะสม: ${score}
                             </span>
                         </div>
-                        <span className="text-sm font-bold text-white bg-pink-400 border-2 border-pink-500 px-4 py-1.5 rounded-full shadow-md">
-                            คะแนน: {score}
-                        </span>
-                    </div>
 
-                    <h2 className="text-base sm:text-lg font-bold text-gray-700 mb-6 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        {currentQuestion.question}
-                    </h2>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-700 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed">
+                            ${currentQuestion.question}
+                        </h2>
 
-                    <div className="space-y-3 mb-5">
-                        {optionsList.map((option, idx) => {
-                            let btnStyle = "bg-white border-2 border-gray-200 text-gray-600 hover:bg-pink-50 hover:border-pink-300";
-                            if (feedback && (feedback.status === 'correct' || feedback.status === 'skip') && option === currentQuestion.answer) {
-                                btnStyle = "bg-green-400 border-green-500 text-white font-bold shadow-md";
-                            }
-                            const disabled = feedback && (feedback.status === 'correct' || feedback.status === 'skip');
-
-                            return (
-                                <button key={idx} onClick={() => handleAnswer(option)} disabled={disabled} className={`w-full p-4 rounded-2xl text-left text-sm font-medium transition-all ${btnStyle} ${disabled ? 'opacity-70 cursor-not-allowed' : 'active:scale-[0.98]'}`}>
-                                    <div className="flex justify-between items-center">
-                                        <span>{option}</span>
-                                        {feedback && (feedback.status === 'correct' || feedback.status === 'skip') && option === currentQuestion.answer && (
-                                            <i className="fa-solid fa-circle-check text-white text-xl"></i>
-                                        )}
-                                    </div>
+                        <div class="space-y-3 mb-5" id="options-box">
+                            ${currentQuestion.options.map((option, idx) => `
+                                <button onclick="handleAnswer('${option}', this, ${idx})" class="option-btn">
+                                    ${option}
                                 </button>
-                            );
-                        })}
+                            `).join('')}
+                        </div>
+
+                        <div id="feedback-container"></div>
+                        <div id="explanation-container"></div>
                     </div>
+                `;
+            } else if (gameState === 'end') {
+                container.innerHTML = `
+                    <div class="cute-panel text-center animate-pop rounded-3xl p-8">
+                        <div class="text-7xl mb-4">🏆</div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">เก่งมาก! ทำครบ 15 ข้อแล้ว</h2>
+                        <p class="text-gray-500 text-sm mb-6">บันทึกและอัปเดตประวัติของท่านลงแผงควบคุมเรียบร้อยแล้ว!</p>
 
-                    {feedback && (
-                        <div className={`p-4 rounded-xl text-sm font-bold mb-3 shadow-inner ${feedback.status === 'correct' ? 'bg-green-50 text-green-700 border border-green-200' : feedback.status === 'skip' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>
-                            {feedback.message}
+                        <div class="bg-purple-50 border-2 border-purple-100 py-6 px-10 rounded-3xl inline-block mb-8 shadow-inner">
+                            <span class="block text-sm text-purple-500 font-bold mb-1">คะแนนที่คุณได้</span>
+                            <span class="text-6xl font-black text-purple-600">${score}</span>
+                            <span class="text-sm font-bold text-purple-400 ml-1">/ 150</span>
                         </div>
-                    )}
-
-                    {feedback && (feedback.status === 'correct' || feedback.status === 'skip') && currentQuestion.explanation && (
-                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl animate-pop text-sm text-slate-600">
-                            <span className="font-bold text-blue-500 block mb-1"><i className="fa-solid fa-lightbulb"></i> คำอธิบาย:</span>
-                            {currentQuestion.explanation}
+                        
+                        <div class="space-y-3">
+                            <button onclick="startGame()" class="w-full bg-green-400 hover:bg-green-500 text-white font-bold py-4 rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-left"></i> เล่นอีกรอบ (สุ่มใหม่)
+                            </button>
+                            <button onclick="window.location.href='index.html'" class="w-full bg-white text-gray-600 border-2 border-gray-200 font-bold py-3.5 rounded-full hover:bg-gray-50 flex items-center justify-center gap-2 shadow-sm">
+                                <i class="fa-solid fa-house"></i> กลับหน้าหลัก
+                            </button>
                         </div>
-                    )}
-                </div>
-            );
+                    </div>
+                `;
+            }
         }
 
-        // ระบบสั่งรัน React ทันทีโดยไม่ต้องรอ Event ป้องกันหน้าจอค้างขาวโพลน
-        const rootElement = document.getElementById('root');
-        if (rootElement) {
-            const root = ReactDOM.createRoot(rootElement);
-            root.render(<App />);
+        // แสดงผลเฉลย และ คําอธิบายความรู้
+        function renderFeedbackAndExplanation() {
+            const fbBox = document.getElementById('feedback-container');
+            const expBox = document.getElementById('explanation-container');
+            const optButtons = document.querySelectorAll('.option-btn');
+            const currentQuestion = quizList[currentIndex];
+
+            if (!fbBox || !expBox) return;
+
+            // บังคับปิดปุ่มตอบทั้งหมดเมื่อตอบเสร็จ (เพื่อไม่ให้กดต่อได้)
+            if (feedback && (feedback.status === 'correct' || feedback.status === 'skip')) {
+                optButtons.forEach(btn => {
+                    btn.disabled = true;
+                    // มาร์กสีเขียวให้กับข้อที่ถูกต้องเฉลยจริง
+                    if (btn.textContent.trim() === currentQuestion.answer) {
+                        btn.classList.add('option-correct');
+                    }
+                });
+
+                // โชว์กล่องคําอธิบายความรู้
+                expBox.innerHTML = `
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl animate-pop text-sm text-slate-600 mt-4 leading-relaxed">
+                        <span class="font-bold text-blue-500 block mb-1">
+                            <i class="fa-solid fa-lightbulb"></i> สาระน่ารู้เฉลยเพิ่มเติม:
+                        </span>
+                        ${currentQuestion.explanation}
+                    </div>
+                `;
+            }
+
+            // แสดงสีกล่องแจ้งเตือนถูกผิด
+            if (feedback) {
+                let colorClass = 'bg-yellow-50 text-yellow-700 border border-yellow-200';
+                if (feedback.status === 'correct') colorClass = 'bg-green-50 text-green-700 border border-green-200';
+                if (feedback.status === 'skip') colorClass = 'bg-red-50 text-red-700 border border-red-200';
+
+                fbBox.innerHTML = `
+                    <div class="p-4 rounded-xl text-sm font-bold shadow-inner ${colorClass}">
+                        ${feedback.message}
+                    </div>
+                `;
+            }
         }
+
+        // เรียกเรนเดอร์หน้าจอเริ่มต้นทันทีเมื่อโหลดบราวเซอร์
+        render();
     </script>
 
+    <!-- ========================================== -->
+    <!-- ระบบ Firebase: บันทึกและอัปโหลดข้อมูลเข้าฐานข้อมูลของแอดมิน coco แบบถาวร -->
+    <!-- ========================================== -->
     <script type="module">
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         window.saveScoreToCloud = async function(game1Score, totalScore) {
-            console.log("คะแนนถูกบันทึกส่งคลาวด์เรียบร้อยแล้ว:", "ด่าน 1:", game1Score, "คะแนนรวม:", totalScore);
+            const playerName = localStorage.getItem('playerName') || 'ผู้เล่นนิรนาม';
+            
+            try {
+                // เชื่อมและบันทึกข้อมูลแบบเรียลไทม์ผ่าน Proxy App Instance ป้องกัน Runtime Error
+                if (typeof shadow !== 'undefined' && typeof shadow.getApp === 'function') {
+                    const app = shadow.getApp();
+                    const db = getFirestore(app);
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard', playerName);
+                    await setDoc(docRef, {
+                        name: playerName,
+                        game1Score: parseInt(game1Score),
+                        score: parseInt(totalScore),
+                        admin: "coco",
+                        adminName: "coco",
+                        timestamp: serverTimestamp()
+                    }, { merge: true });
+                    
+                    console.log("🚀 เชื่อมโยงและบันทึกสถิติมุ่งตรงสู่แผงแอดมิน coco สำเร็จแล้ว!");
+                }
+            } catch (error) {
+                console.error("Cloud Connection Error:", error);
+            }
         };
     </script>
 </body>
