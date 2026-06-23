@@ -55,14 +55,66 @@
         </div>
 
         <!-- กระดานคะแนนรวมทุกเกม -->
-        <div class="bg-indigo-900 rounded-3xl p-5 border-4 border-indigo-400 shadow-xl text-white">
-            <h3 class="text-yellow-400 font-bold mb-4 text-xl"><i class="fa-solid fa-trophy mr-2"></i> สรุปคะแนนรวมทุกเกม</h3>
-            <div id="leaderboard-container" class="space-y-2 text-left max-h-60 overflow-y-auto pr-2">
-                <p class="text-slate-300 text-center text-sm py-4">กำลังโหลดข้อมูลประวัติคะแนน...</p>
+       <div class="bg-[#2d2a77] rounded-[2rem] p-6 text-center border-4 border-[#1e1c55] shadow-xl relative overflow-hidden mt-8">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+            
+            <h3 class="text-xl font-bold text-yellow-400 mb-4 flex items-center justify-center drop-shadow-md">
+                <i class="fa-solid fa-trophy mr-2 text-3xl animate-bounce-soft"></i> สถิติคะแนนของคุณ
+            </h3>
+            
+            <div class="grid grid-cols-2 gap-3 mb-4 relative z-10">
+                <div class="bg-[#1e1c55] rounded-xl p-3 border border-[#3b388c] shadow-sm">
+                    <p class="text-pink-300 text-[11px] sm:text-xs mb-1 font-semibold truncate">ด่าน 1: ตะลุยโลกภาษี</p>
+                    <p id="game1-score-display" class="text-2xl font-bold text-white">0</p>
+                </div>
+                <div class="bg-[#1e1c55] rounded-xl p-3 border border-[#3b388c] shadow-sm">
+                    <p class="text-green-300 text-[11px] sm:text-xs mb-1 font-semibold truncate">ด่าน 2: (รอด่านต่อไป)</p>
+                    <p id="game2-score-display" class="text-2xl font-bold text-white">0</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-[#1e1c55] to-[#2a276b] rounded-2xl p-4 border border-[#3b388c] shadow-inner relative z-10">
+                <p class="text-indigo-200 text-sm mb-1 font-semibold">คะแนนสะสมรวมทั้งหมด</p>
+                <div class="flex items-center justify-center">
+                    <p id="total-score-display" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 drop-shadow-lg">
+                        0
+                    </p>
+                    <span class="text-yellow-500 text-xl ml-2 mt-3 font-bold">แต้ม</span>
+                </div>
             </div>
         </div>
-    </div>
+        
+    </div> <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. ดึงชื่อผู้เล่น
+            const playerName = localStorage.getItem('playerName');
+            if (playerName) {
+                const welcomeEl = document.querySelector('h2.text-xl.font-bold');
+                if (welcomeEl) {
+                    welcomeEl.innerHTML = `ยินดีต้อนรับ,<br><span class="text-3xl text-indigo-700 mt-1 block">${playerName}</span>`;
+                }
+            }
 
+            // 2. ดึงคะแนนแยกแต่ละเกม (ถ้าไม่มีให้เป็น 0)
+            const game1Score = parseInt(localStorage.getItem('game1Score') || '0');
+            const game2Score = parseInt(localStorage.getItem('game2Score') || '0');
+            
+            // 3. นำคะแนนทุกเกมมาบวกรวมกัน
+            const totalScore = game1Score + game2Score;
+            
+            // อัปเดตคะแนนรวมในระบบเผื่อไว้ใช้
+            localStorage.setItem('globalScore', totalScore);
+
+            // 4. นำตัวเลขไปแสดงบนหน้าเว็บ
+            const g1Display = document.getElementById('game1-score-display');
+            const g2Display = document.getElementById('game2-score-display');
+            const totalDisplay = document.getElementById('total-score-display');
+
+            if (g1Display) g1Display.innerText = game1Score;
+            if (g2Display) g2Display.innerText = game2Score;
+            if (totalDisplay) totalDisplay.innerText = totalScore;
+        });
+   
     <!-- ส่วนของสคริปต์ทำงาน -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
