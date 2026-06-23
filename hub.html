@@ -78,6 +78,14 @@
                 window.location.href = "game1.html";
             }
         }
+        // เช็คว่าถ้าด่านเกินด่านที่ 4 (คือจบเกมแล้ว)
+if (currentLevel > 4) {
+    document.getElementById('display-level').innerText = "จบเกม 🎉";
+    document.getElementById('btn-continue-text').innerText = "พิชิตภารกิจสำเร็จแล้ว!";
+    // ปิดปุ่มไม่ให้กดเข้าเกมต่อได้อีก
+    document.querySelector('button[onclick="continueGame()"]').disabled = true;
+    document.querySelector('button[onclick="continueGame()"]').classList.add('opacity-50', 'cursor-not-allowed');
+}
     </script>
 </body>
 </html>
