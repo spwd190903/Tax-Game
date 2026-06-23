@@ -607,20 +607,28 @@
             document.getElementById('ui-final-score').innerText = score;
             
             const msgElement = document.getElementById('ui-result-message');
-            if (score > 80) {
-                msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูทำคะแนนด่านภาษีได้ดีมากๆ!';
-            } else if (score > 50) {
+            if (score > 100) {
+                msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูทำคะแนนด่านภาษีได้ทะลุเป้ามากๆ!';
+            } else if (score > 60) {
                 msgElement.innerHTML = '🌟 เก่งมากๆ เลยจ้า! 🌟<br>มีความรู้เรื่องภาษีที่ยอดเยี่ยมเลย';
             } else {
                 msgElement.innerHTML = '💪 พยายามได้ดีมาก! 💪<br>ลองกลับไปฝึกฝนและศึกษาเพิ่มเติมได้น้า!';
             }
             
-            // คำนวณคะแนนรวมในระบบสะสมแต้ม
+            // ------------------------------------------------
+            // ระบบบันทึกคะแนนแบบแยกด่าน (ใหม่!)
+            // ------------------------------------------------
+            // 1. ดึงคะแนนเดิมของ "เกมที่ 1" มาบวกเพิ่ม
+            let currentGame1Score = parseInt(localStorage.getItem('game1Score') || '0');
+            currentGame1Score += score;
+            localStorage.setItem('game1Score', currentGame1Score);
+
+            // 2. อัปเดตคะแนนรวมทั้งหมด
             let currentGlobalScore = parseInt(localStorage.getItem('globalScore') || '0');
             currentGlobalScore += score;
             localStorage.setItem('globalScore', currentGlobalScore);
 
-            // บันทึกคะแนนใหม่ขึ้นสู่คลาวด์เพื่อให้คะแนนอัปเดตบนตารางผู้นำ (Hall of Fame) ในหน้าหลัก
+            // บันทึกคะแนนใหม่ขึ้นสู่คลาวด์เพื่อให้คะแนนอัปเดตบนตารางผู้นำ (Hall of Fame)
             if (window.saveScoreToCloud) {
                 window.saveScoreToCloud(playerName, currentGlobalScore);
             }
@@ -631,24 +639,9 @@
                 const end = Date.now() + duration;
 
                 (function frame() {
-                    confetti({
-                        particleCount: 5,
-                        angle: 60,
-                        spread: 55,
-                        origin: { x: 0 },
-                        colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047']
-                    });
-                    confetti({
-                        particleCount: 5,
-                        angle: 120,
-                        spread: 55,
-                        origin: { x: 1 },
-                        colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047']
-                    });
-
-                    if (Date.now() < end) {
-                        requestAnimationFrame(frame);
-                    }
+                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047'] });
+                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047'] });
+                    if (Date.now() < end) { requestAnimationFrame(frame); }
                 }());
             }
             
