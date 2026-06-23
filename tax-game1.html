@@ -455,31 +455,26 @@
             }
         }
 
-        // เริ่มเกมใหม่
-        function startGame() {
-            const nameInput = document.getElementById('player-name-input').value.trim();
-            if (!nameInput) {
-                const warning = document.getElementById('name-warning');
-                warning.classList.remove('hidden');
-                // รีเซ็ต animation ให้สั่นใหม่
-                warning.classList.remove('animate-wiggle');
-                void warning.offsetWidth;
-                warning.classList.add('animate-wiggle');
-                return;
-            }
-            document.getElementById('name-warning').classList.add('hidden');
-            playerName = nameInput;
-            document.getElementById('ui-player-name-display').innerText = playerName;
-
-            currentQIndex = 0;
-            score = 0;
-            wrongAttempts = 0;
-            isProcessing = false;
-            
-            document.getElementById('app').classList.remove('animate-pulse-border'); 
-            showScreen('screen-game');
-            loadQuestion();
-        }
+        // นำชื่อที่เคยพิมพ์ไว้จากหน้าแรกมาใช้
+function startGame() {
+    playerName = localStorage.getItem('playerName');
+    
+    // ถ้าไม่มีชื่อ (แอบเข้าผ่านลิงก์ตรง) ให้เด้งกลับไปหน้าแรก
+    if (!playerName) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    document.getElementById('ui-player-name-display').innerText = playerName;
+    currentQIndex = 0;
+    score = 0;
+    wrongAttempts = 0;
+    isProcessing = false;
+    
+    document.getElementById('app').classList.remove('animate-pulse-border');
+    showScreen('screen-game');
+    loadQuestion();
+}
 
         // โหลดคำถามปัจจุบันขึ้นหน้าจอ
         function loadQuestion() {
@@ -660,19 +655,28 @@
             }
         }
 
-        // แสดงหน้าจอสรุปผล
-        function endGame() {
-            document.getElementById('app').classList.add('animate-pulse-border');
-            document.getElementById('ui-final-score').innerText = score;
-            
-            const msgElement = document.getElementById('ui-result-message');
-            if (score > 80) {
-                msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูคือปรมาจารย์ด้านภาษีตัวจริงเลยนะเนี่ย!';
-            } else if (score > 50) {
-                msgElement.innerHTML = '🌟 เก่งมากๆ เลยจ้า! 🌟<br>มีความรู้เรื่องภาษีดีเยี่ยมเลยล่ะ';
-            } else {
-                msgElement.innerHTML = '💪 พยายามได้ดีมาก! 💪<br>ลองทบทวนอีกนิด รอบหน้าต้องได้คะแนนเต็มแน่ๆ';
-            }
+        // อัปเดตคะแนนรวมเมื่อเล่นจบ
+function endGame() {
+    document.getElementById('app').classList.add('animate-pulse-border');
+    document.getElementById('ui-final-score').innerText = score;
+    
+    const msgElement = document.getElementById('ui-result-message');
+    if (score > 80) msgElement.innerText = 'สุดยอด! คุณคือปรมาจารย์!';
+    else if (score > 50) msgElement.innerText = 'เก่งมาก! ทำได้ดีทีเดียว';
+    else msgElement.innerText = 'พยายามได้ดี! ลองศึกษาอีกนิดนะ';
+    
+    // ดึงคะแนนสะสมเดิมมา บวกด้วยคะแนนเกมนี้ แล้วบันทึกกลับไป
+    let globalScore = parseInt(localStorage.getItem('globalScore') || '0');
+    globalScore += score; 
+    localStorage.setItem('globalScore', globalScore);
+
+    // บันทึก "คะแนนรวม" ลงคลาวด์แทนคะแนนเกมเดียว
+    if (window.saveScoreToCloud) {
+        window.saveScoreToCloud(playerName, globalScore);
+    }
+    
+    showScreen('screen-result');
+}
             
             // ยิง Confetti ชุดใหญ่ฉลองตอนจบเกม
             if(window.confetti) {
