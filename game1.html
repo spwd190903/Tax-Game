@@ -264,7 +264,40 @@
                 statusDiv.innerHTML = `☁️ ลิงก์เชื่อมโยงเรียบร้อย กดส่งคะแนนด้านล่างได้เลย!`;
             }
         }
+// 🌟 โค้ดปรับปรุงใหม่: ส่งคะแนนให้แอดมินเห็นทันทีเมื่อจบด่าน 1
+        function finishLevel() {
+            // 1. คำนวณคะแนนใหม่
+            let oldTotal = parseInt(localStorage.getItem('totalScore')) || 0;
+            let newTotal = oldTotal + score; // คะแนนด่านนี้ + คะแนนเดิม
+            let nextLevel = 2; // ด่านถัดไปคือด่าน 2
 
+            // 2. บันทึกลงเครื่อง (localStorage)
+            localStorage.setItem('totalScore', newTotal);
+            localStorage.setItem('currentLevel', nextLevel); 
+
+            // 3. 🌐 ส่งข้อมูลไปที่ Google Sheets ทันทีเพื่อให้คุณครูเห็นบนหน้า Admin
+            // (อย่าลืมเปลี่ยนลิงก์ WEB_APP_URL ให้เป็นลิงก์ Web App ของคุณครูนะครับ)
+            const WEB_APP_URL = "วางลิงก์_Web_App_ของคุณครูตรงนี้ครับ"; 
+
+            // ปรับปุ่มให้แสดงสถานะกำลังโหลด เพื่อป้องกันเด็กกดซ้ำๆ
+            const btn = document.querySelector('button[onclick="finishLevel()"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> กำลังบันทึกข้อมูลเข้าสู่ระบบแอดมิน...`;
+            }
+
+            // ส่งข้อมูลชื่อ, ด่านล่าสุดที่จะไป, และคะแนนรวม ณ ตอนนี้ ไปที่ Google Sheets
+            fetch(`${WEB_APP_URL}?name=${encodeURIComponent(playerName)}&currentLevel=${nextLevel}&totalScore=${newTotal}`)
+                .then(response => {
+                    // เมื่อส่งข้อมูลสำเร็จ พานักเรียนกลับไปหน้าแผนที่ (hub.html)
+                    window.location.href = "hub.html"; 
+                })
+                .catch(error => {
+                    console.error("เกิดข้อผิดพลาดในการส่งข้อมูลไปยัง Sheets:", error);
+                    // แม้เน็ตจะหลุดหรือส่งไม่สำเร็จ ก็ให้เด็กไปหน้า hub.html ได้ (เพราะคะแนนเซฟลงเครื่องเด็กแล้ว)
+                    window.location.href = "hub.html"; 
+                });
+        }
         function sendScoreToSheet() {
             const statusDiv = document.getElementById('sheet-status');
             const sendBtn = document.getElementById('send-score-btn');
