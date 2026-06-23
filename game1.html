@@ -3,547 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เกมภาษีพาสนุก ม.40</title>
-    <!-- โหลด Tailwind CSS, Font และ Icon -->
+    <title>เกมที่ 1: ตะลุยโลกภาษี</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- โหลดระบบจุดพลุฉลองตอนเล่นจบ -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
     <style>
         body {
             font-family: 'Mali', cursive;
-            background: #f3e8ff;
-            background-image: radial-gradient(#e9d5ff 2px, transparent 2px);
-            background-size: 32px 32px;
-            min-height: 100vh;
+            background-color: #f3e8ff;
+            background-image: radial-gradient(#d8b4fe 1.5px, transparent 1.5px), radial-gradient(#d8b4fe 1.5px, #f3e8ff 1.5px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
         }
-        .cute-panel {
-            background: rgba(255, 255, 255, 0.96);
-            border: 4px solid #fbcfe8;
-            box-shadow: 0 12px 30px rgba(244, 63, 94, 0.08);
-            border-radius: 2rem;
-            transform-origin: center;
-        }
-        @keyframes pop {
-            0% { transform: scale(0.95); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-pop { animation: pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
-        }
-        .animate-shake { animation: shake 0.35s ease-in-out; }
-        .option-btn {
-            width: 100%;
-            text-align: left;
-            padding: 1rem;
-            border-radius: 1.2rem;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            border: 2px solid #f3f4f6;
-            background-color: white;
-            color: #4b5563;
-        }
-        .option-btn:not(:disabled):hover {
-            border-color: #f9a8d4;
-            background-color: #fdf2f8;
-            transform: translateY(-1px);
-        }
-        .option-btn:active {
-            transform: translateY(1px);
-        }
-        .option-correct {
-            background-color: #4ade80 !important;
-            border-color: #22c55e !important;
-            color: white !important;
-            font-weight: bold;
-        }
-        .option-wrong {
-            background-color: #fca5a5 !important;
-            border-color: #ef4444 !important;
-            color: white !important;
-        }
+        .arcade-btn { transition: all 0.2s; box-shadow: 0 6px 0 rgba(0,0,0,0.1); }
+        .arcade-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0); }
+        .choice-btn { transition: all 0.15s; }
+        .choice-btn:hover { transform: scale(1.02); }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
+<body class="min-h-screen text-slate-800 flex flex-col items-center justify-center p-4">
 
-    <!-- พื้นที่แสดงหน้าจอเกมหลัก -->
-    <div id="game-container" class="w-full max-w-xl">
-        <!-- โค้ด HTML จะถูกนำมาสร้างใหม่ที่นี่ผ่าน JavaScript -->
+    <!-- การ์ดตัวเกมหลัก -->
+    <div class="bg-white/95 backdrop-blur-sm rounded-[2.5rem] shadow-2xl w-full max-w-2xl p-6 md:p-8 border-4 border-purple-200 relative overflow-hidden">
+        
+        <!-- แถบด้านบน: แสดงผู้เล่น -->
+        <div class="flex justify-between items-center mb-6 pb-4 border-b-2 border-purple-100">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl">👤</span>
+                <div>
+                    <p class="text-xs text-slate-400 font-semibold">ผู้เล่นปัจจุบัน</p>
+                    <p id="player-display-name" class="font-bold text-purple-600">กำลังโหลด...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. หน้ากติกาเริ่มต้น -->
+        <div id="start-screen" class="space-y-6 text-center py-6">
+            <h1 class="text-3xl md:text-4xl font-black text-purple-600">เกมที่ 1: ตะลุยโลกภาษี 📚</h1>
+            <p class="text-slate-500 font-bold -mt-2">ยินดีต้อนรับผู้เล่นคนเก่ง! ✨</p>
+
+            <div class="bg-purple-50 rounded-2xl p-6 border-2 border-purple-200 max-w-md mx-auto text-left space-y-4">
+                <h3 class="font-bold text-lg text-purple-700 flex items-center gap-2">
+                    <span class="text-xl">⭐️</span> กติกาการเล่น:
+                </h3>
+                <ul class="space-y-3 text-slate-600 font-semibold text-sm">
+                    <li class="flex items-center gap-3">
+                        <span class="bg-emerald-100 text-emerald-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                        ตอบถูกครั้งแรก: <strong class="text-emerald-600 ml-1">+10 คะแนน</strong>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                        ตอบถูกครั้งที่ 2: <strong class="text-blue-600 ml-1">+5 คะแนน</strong>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="bg-purple-100 text-purple-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
+                        ตอบถูกครั้งที่ 3: <strong class="text-purple-600 ml-1">+2 คะแนน</strong>
+                    </li>
+                    <li class="flex items-center gap-3 text-rose-600 bg-rose-50 p-2 rounded-xl border border-rose-200">
+                        <span>⚠️</span>
+                        <span>ตอบผิดครบ 3 ครั้ง: <strong class="underline">-5 คะแนน</strong> ระบบจะข้ามข้อ!</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="space-y-3 pt-4 max-w-xs mx-auto">
+                <button onclick="startGame()" class="arcade-btn w-full bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-300 hover:to-purple-400 text-white font-bold py-4 px-6 rounded-2xl text-xl border-b-4 border-purple-700">
+                     เริ่มตะลุยด่าน! 🚀
+                </button>
+                <a href="index.html" class="arcade-btn block w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 px-6 rounded-2xl text-lg border-2 border-slate-300 no-underline">
+                    <i class="fa-solid fa-house mr-1"></i> กลับหน้าหลัก
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. หน้าจอคำถามการเล่น -->
+        <div id="gameplay-screen" class="hidden space-y-6">
+            <div class="flex justify-between items-center text-sm font-bold bg-purple-50 p-3 rounded-xl border border-purple-100">
+                <div class="text-purple-600">ข้อที่: <span id="current-question-num" class="text-lg text-pink-500">1</span>/15</div>
+                <div class="text-slate-500">โอกาส: <span id="hearts-display" class="text-rose-500 text-lg">❤️❤️❤️</span></div>
+                <div class="text-emerald-600">คะแนน: <span id="live-score" class="text-lg">0</span></div>
+            </div>
+
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-gradient-to-r from-pink-400 to-purple-500 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 border-2 border-purple-100 shadow-inner">
+                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-slate-700 text-center leading-relaxed">กำลังโหลด...</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="choices-container"></div>
+            <div id="feedback-message" class="hidden text-center font-bold text-lg p-3 rounded-xl"></div>
+        </div>
+
+        <!-- 3. หน้าจอสรุปผลลัพธ์ -->
+        <div id="summary-screen" class="hidden text-center space-y-6 py-6 animate-fade-in">
+            <span class="text-7xl animate-bounce inline-block">🏆</span>
+            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-yellow-500">ภารกิจสำเร็จแล้ว!</h1>
+            
+            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-3xl p-6 border-2 border-purple-200 max-w-md mx-auto shadow-md">
+                <p class="text-slate-500 font-bold text-sm mb-1">คะแนนที่คุณทำได้ในด่านนี้</p>
+                <div class="flex items-center justify-center">
+                    <span id="final-score" class="text-6xl font-black text-purple-600">0</span>
+                    <span class="text-purple-600 font-bold text-2xl ml-2 mt-4">แต้ม</span>
+                </div>
+            </div>
+
+            <div class="bg-white border-2 border-dashed border-purple-200 rounded-2xl p-5 max-w-md mx-auto space-y-3">
+                <h4 class="font-bold text-purple-700 text-sm"><i class="fa-solid fa-cloud-arrow-up"></i> ส่งคะแนนให้คุณครู</h4>
+                <div id="sheet-status" class="text-xs font-semibold text-slate-500 bg-slate-100 p-2 rounded-lg">กำลังเตรียมการส่งคะแนน...</div>
+                <button id="send-score-btn" onclick="sendScoreToSheet()" class="arcade-btn w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 px-6 rounded-xl text-md border-b-4 border-emerald-700">
+                    <i class="fa-solid fa-paper-plane mr-1"></i> ยืนยันส่งคะแนน
+                </button>
+            </div>
+
+            <div class="max-w-xs mx-auto">
+                <a href="index.html" class="arcade-btn block w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-4 px-6 rounded-2xl text-lg border-b-4 border-indigo-700 no-underline">
+                    <i class="fa-solid fa-house mr-1"></i> กลับหน้าหลักทันที
+                </a>
+            </div>
+        </div>
+
     </div>
 
-    <!-- ========================================== -->
-    <!-- ส่วนควบคุมการเล่นเกมและเชื่อมต่อ Google Sheets -->
-    <!-- ========================================== -->
+    <!-- ============================================== -->
+    <!-- ระบบสคริปต์: วางลิงก์ตรงนี้ครับ! -->
+    <!-- ============================================== -->
     <script>
-        // URL Google Apps Script ของคุณครูที่เชื่อมกับ Google Sheets
-        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxEv8JjlTJh5weYWqygYjmnIi9wLTx5VfcgyYO8RcKHwC4k-9-mFM6SI_ZNvhrdcGgx/exec';
+        // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+        // นำลิงก์ Web App URL ที่ลงท้ายด้วย /exec มาวางในเครื่องหมาย " " ด้านล่างนี้เลยครับ
+        // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+        
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxHuLhLDk1K2pc694ViIUpPA2JpmKjkngsJIs1d_6ON8L6eua2b85USUwFDyaGpR2EWEw/exec";
 
-        // คลังข้อสอบภาษีเงินได้บุคคลธรรมดา ม.40 (1)-(8) ทั้งหมด 15 ข้อ
-        const allQuestions = [
-            {
-                question: "นาย A เป็นพนักงานบริษัทเอกชน ได้รับ 'เงินเดือน' และ 'โบนัส' สิ้นปี ถือเป็นเงินได้พึงประเมินประเภทใด?",
-                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 1 (ม.40(1))",
-                explanation: "เงินได้ประเภทที่ 1 คือ เงินได้จากการจ้างแรงงาน เช่น เงินเดือน ค่าจ้าง โบนัส เบี้ยเลี้ยง บำนาญ มีลักษณะเป็นพนักงานประจำที่มีสัญญาจ้างถาวร"
-            },
-            {
-                question: "นางสาว B เป็นตัวแทนขายประกันชีวิต ได้รับ 'ค่านายหน้า' จากยอดขาย ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))"],
-                answer: "ประเภทที่ 2 (ม.40(2))",
-                explanation: "เงินได้ประเภทที่ 2 คือ เงินได้เนื่องจากหน้าที่หรือตำแหน่งงานที่ทำ หรือจากการรับทำงานให้ชั่วคราว เช่น ค่านายหน้า ค่าธรรมเนียม ไม่ได้เป็นพนักงานประจำ"
-            },
-            {
-                question: "นักแต่งเพลงและนักเขียน ได้รับ 'ค่าลิขสิทธิ์' และค่าสิทธิบัตร ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 7 (ม.40(7))"],
-                answer: "ประเภทที่ 3 (ม.40(3))",
-                explanation: "เงินได้ประเภทที่ 3 คือ ค่าแห่งกู๊ดวิลล์ ลิขสิทธิ์ หรือสิทธิอย่างอื่น รวมถึงเงินรายปีที่มาจากพินัยกรรมหรือนิติกรรม"
-            },
-            {
-                question: "นาย C นำเงินไปลงทุนและฝากธนาคาร จนได้รับ 'ดอกเบี้ยเงินฝาก' และ 'เงินปันผลจากหุ้น' ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 4 (ม.40(4))",
-                explanation: "เงินได้ประเภทที่ 4 คือ เงินได้จากการลงทุนในสินทรัพย์ทางการเงิน (Capital) เช่น ดอกเบี้ยธนาคาร เงินปันผล ส่วนแบ่งกำไร"
-            },
-            {
-                question: "นาง D มีตึกแถวว่าง จึงเปิดให้ผู้สนใจเช่าทำร้านค้า ได้รับ 'ค่าเช่าตึก' ทุกเดือน ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 5 (ม.40(5))",
-                explanation: "เงินได้ประเภทที่ 5 คือ เงินได้จากการให้เช่าทรัพย์สินทุกประเภท การผิดสัญญาเช่าซื้อ หรือการผิดสัญญาซื้อขายเงินผ่อน"
-            },
-            {
-                question: "ข้อใดจัดเป็นเงินได้จากวิชาชีพอิสระ 'ประเภทที่ 6 (ม.40(6))' ?",
-                options: ["แม่ค้าขายของออนไลน์", "วิศวกร แพทย์ และทนายความที่มีใบประกอบวิชาชีพ", "ผู้รับเหมาก่อสร้าง", "นักร้องและนักดนตรีอาชีพ"],
-                answer: "วิศวกร แพทย์ และทนายความที่มีใบประกอบวิชาชีพ",
-                explanation: "เงินได้ประเภทที่ 6 คือ เงินได้จากวิชาชีพอิสระที่กฎหมายกำหนดไว้ 6 อาชีพ ได้แก่ วิชากฎหมาย การประกอบโรคศิลปะ (แพทย์) วิศวกรรม สถาปัตยกรรม การบัญชี และประณีตศิลปกรรม"
-            },
-            {
-                question: "นาย E รับเหมาก่อสร้าง โดยที่ตนเอง 'ต้องเป็นผู้จัดหาปูน หิน ดิน ทราย และเหล็กเส้นเองทั้งหมด' จัดเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 7 (ม.40(7))",
-                explanation: "เงินได้ประเภทที่ 7 คือ เงินได้จากการรับเหมาที่ผู้รับเหมาต้องจัดหาสัมภาระในส่วนสำคัญนอกเหนือจากเครื่องมือ หากผู้จ้างจัดหาวัสดุให้ทั้งหมดจะถือเป็นประเภทที่ 2"
-            },
-            {
-                question: "เจ้าของร้านอาหาร บุคคลทั่วไปที่ขายเสื้อผ้าออนไลน์ หรือเกษตรกรขายข้าว จัดเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 1 (ม.40(1))", "ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 8 (ม.40(8))",
-                explanation: "เงินได้ประเภทที่ 8 คือ เงินได้จากการพาณิชย์ การเกษตร การอุตสาหกรรม การขนส่ง หรือเงินได้อื่นๆ ที่ไม่ระบุไว้ในประเภทที่ 1 ถึงประเภทที่ 7"
-            },
-            {
-                question: "ดารา นักแสดง นักร้อง หรืออินฟลูเอนเซอร์ที่รับงานแสดงสาธารณะ ได้รับเงินได้พึงประเมินประเภทใด?",
-                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 8 (ม.40(8))",
-                explanation: "กฎหมายกำหนดให้นักแสดงสาธารณะ (ดารา นักร้อง นักแสดง นักกีฬาอาชีพ) จัดอยู่ในกลุ่มเงินได้พึงประเมินประเภทที่ 8"
-            },
-            {
-                question: "ข้อใดคือการแยกแยะระหว่างเงินได้ประเภทที่ 1 และประเภทที่ 2 ได้ถูกต้องที่สุด?",
-                options: [
-                    "ประเภท 1 ไม่ต้องยื่นแบบภาษีเลย ส่วนประเภท 2 ต้องยื่นเสมอ",
-                    "ประเภท 1 มีสถานะนายจ้าง-ลูกจ้าง (ควบคุมเวลาทำงาน) ส่วนประเภท 2 รับงานอิสระ มุ่งเน้นผลสำเร็จของงานเป็นชิ้นๆ",
-                    "ประเภท 1 จ่ายเงินเป็นรายปี ส่วนประเภท 2 จ่ายเงินเป็นรายวัน",
-                    "ทั้งสองประเภทไม่มีข้อแตกต่างกันเลยทางกฎหมาย"
-                ],
-                answer: "ประเภท 1 มีสถานะนายจ้าง-ลูกจ้าง (ควบคุมเวลาทำงาน) ส่วนประเภท 2 รับงานอิสระ มุ่งเน้นผลสำเร็จของงานเป็นชิ้นๆ",
-                explanation: "เงินได้ประเภทที่ 1 คือสัญญาจ้างแรงงาน มีความผูกพันควบคุมชั่วโมงทำงาน ส่วนประเภทที่ 2 เป็นการรับจ้างทำของ/ทำงานให้ ไม่มีความสัมพันธ์แบบลูกจ้างประจำ"
-            },
-            {
-                question: "เงินได้ประเภทใดต่อไปนี้ เมื่อนำมารวมกันแล้ว 'หักค่าใช้จ่ายแบบเหมาได้ 50% แต่สูงสุดรวมกันต้องไม่เกิน 100,000 บาท'?",
-                options: ["ประเภทที่ 1 และ 2", "ประเภทที่ 3 และ 4", "ประเภทที่ 5 และ 6", "ประเภทที่ 8 ทั้งหมด"],
-                answer: "ประเภทที่ 1 และ 2",
-                explanation: "กฎหมายให้นำเงินได้ประเภทที่ 1 (เงินเดือน) และประเภทที่ 2 (ค่านายหน้า) มารวมกัน หักค่าใช้จ่ายเหมาได้ 50% แต่กำหนดเพดานหักได้ไม่เกิน 100,000 บาท"
-            },
-            {
-                question: "นาย F เทรดคริปโทเคอร์เรนซี (Cryptocurrency) และ 'ได้กำไรจากการขาย' กำไรส่วนนี้ถือเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 4 (ม.40(4))", "ประเภทที่ 5 (ม.40(5))", "ประเภทที่ 7 (ม.40(7))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 4 (ม.40(4))",
-                explanation: "ผลประโยชน์หรือผลกำไรจากการโอนคริปโทเคอร์เรนซี หรือโทเคนดิจิทัล ถูกจัดให้อยู่ในหมวดเงินได้ประเภทที่ 4 (กลุ่มรายได้จากสินทรัพย์ทางการเงิน)"
-            },
-            {
-                question: "ยูทูบเบอร์ (YouTuber) ที่มีรายได้จาก 'ส่วนแบ่งค่าโฆษณา (AdSense)' จัดเป็นเงินได้ประเภทใด?",
-                options: ["ประเภทที่ 2 (ม.40(2))", "ประเภทที่ 3 (ม.40(3))", "ประเภทที่ 6 (ม.40(6))", "ประเภทที่ 8 (ม.40(8))"],
-                answer: "ประเภทที่ 8 (ม.40(8))",
-                explanation: "รายได้จากส่วนแบ่งระบบโฆษณา AdSense ถือเป็นธุรกิจพาณิชย์อิสระรูปแบบหนึ่ง จึงอยู่ในกลุ่มเงินได้ประเภทที่ 8"
-            },
-            {
-                question: "นาง G 'ถูกรางวัลสลากกินแบ่งรัฐบาล' (ลอตเตอรี่) เงินรางวัลที่ได้รับจะต้องนำมารวมคำนวณภาษีเงินได้บุคคลธรรมดาปลายปีหรือไม่?",
-                options: ["ต้องนำมารวมคำนวณฐานประเภทที่ 8", "ไม่ต้องนำมารวมคำนวณเพราะได้รับการยกเว้นภาษีเงินได้", "ต้องหักค่าใช้จ่าย 50% แล้วนำมารวม", "ต้องนำมารวมทั้งหมดไม่มีข้อยกเว้น"],
-                answer: "ไม่ต้องนำมารวมคำนวณเพราะได้รับการยกเว้นภาษีเงินได้",
-                explanation: "เงินรางวัลจากสลากกินแบ่งรัฐบาลได้รับการยกเว้นภาษีเงินได้บุคคลธรรมดา แต่ผู้ถูกรางวัลต้องชำระค่าอากรแสตมป์ 0.5% ณ วันที่รับเงินรางวัล"
-            },
-            {
-                question: "การได้รับ 'มรดก' จากผู้บุพการี มูลค่า 10 ล้านบาท จะต้องนำมาเสียภาษีเงินได้บุคคลธรรมดาปลายปีหรือไม่?",
-                options: ["ต้องเสียภาษีเงินได้ประเภทที่ 8", "ไม่ต้องเสียภาษีเงินได้บุคคลธรรมดาเพราะได้รับการยกเว้น", "ต้องเสียในอัตราขั้นบันได 35%", "ต้องเสียหัก ณ ที่จ่าย 10%"],
-                answer: "ไม่ต้องเสียภาษีเงินได้บุคคลธรรมดาเพราะได้รับการยกเว้น",
-                explanation: "เงินได้จากการรับมรดกจะได้รับยกเว้นภาษีเงินได้บุคคลธรรมดา (แต่หากเป็นมรดกที่มูลค่าเกิน 100 ล้านบาทขึ้นไป จะต้องเสีย 'ภาษีการรับมรดก' ในส่วนที่เกินแทน)"
-            }
+        // ==========================================================
+
+        const questions = [
+            { q: "1. ภาษีมูลค่าเพิ่ม (VAT) ในประเทศไทยปัจจุบันจัดเก็บในอัตราปกติเท่าใด?", c: ["ร้อยละ 5", "ร้อยละ 7", "ร้อยละ 10", "ร้อยละ 15"], a: 1 },
+            { q: "2. ใครมีหน้าที่ขั้นพื้นฐานในการเสียภาษีเงินได้บุคคลธรรมดา?", c: ["เด็กแรกเกิดทุกคน", "ผู้มีรายได้เกิดขึ้นในปีภาษีที่ผ่านมา", "เฉพาะข้าราชการเท่านั้น", "เฉพาะเจ้าของบริษัทขนาดใหญ่"], a: 1 },
+            { q: "3. ภาษีประเภทใดจัดเป็น 'ภาษีทางอ้อม'?", c: ["ภาษีมูลค่าเพิ่ม", "ภาษีเงินได้บุคคลธรรมดา", "ภาษีเงินได้นิติบุคคล", "ภาษีมรดก"], a: 0 },
+            { q: "4. เมื่อนักเรียนซื้อขนมในร้านสะดวกซื้อ นักเรียนกำลังจ่ายภาษีชนิดใด?", c: ["ภาษีศุลกากร", "ภาษีป้าย", "ภาษีสรรพสามิต", "ภาษีมูลค่าเพิ่ม (VAT)"], a: 3 },
+            { q: "5. หน่วยงานใดดูแลและจัดเก็บภาษีเงินได้บุคคลธรรมดาและภาษีมูลค่าเพิ่ม?", c: ["กรมศุลกากร", "กรมสรรพากร", "กรมสรรพสามิต", "ธนาคารแห่งประเทศไทย"], a: 1 },
+            { q: "6. ภาษีทางตรง แตกต่างจาก ภาษีทางอ้อม อย่างไร?", c: ["จัดเก็บได้เร็วกว่า", "ผู้เสียภาษีผลักภาระให้ผู้อื่นไม่ได้", "เก็บเฉพาะสินค้านำเข้า", "ได้รับการยกเว้นตลอดเวลา"], a: 1 },
+            { q: "7. รายได้ประเภทใดได้รับการยกเว้นภาษีเงินได้บุคคลธรรมดา?", c: ["เงินเดือนประจำของครู", "เงินรางวัลสลากกินแบ่งรัฐบาล", "รายได้จากร้านขายของชำ", "เงินจากการสอนพิเศษ"], a: 1 },
+            { q: "8. ภาษีชนิดใดจัดเก็บจากสินค้าเฉพาะกลุ่มที่เป็นโทษหรือฟุ่มเฟือย เช่น บุหรี่ สุรา?", c: ["ภาษีป้าย", "ภาษีสรรพสามิต", "ภาษีมูลค่าเพิ่ม", "ภาษีบำรุงท้องที่"], a: 1 },
+            { q: "9. การยื่นแบบเสียภาษีเงินได้บุคคลธรรมดา (ภ.ง.ด. 90/91) ต้องยื่นช่วงเดือนใด?", c: ["มกราคม - มีนาคม ของปีถัดไป", "เมษายน - มิถุนายน", "กันยายน - ตุลาคม", "ธันวาคม ของปีภาษีนั้นๆ"], a: 0 },
+            { q: "10. สูตรที่ถูกต้องในการคิด 'เงินได้สุทธิ' เพื่อคำนวณภาษีคือข้อใด?", c: ["เงินได้ + ค่าลดหย่อน", "เงินได้ - ค่าใช้จ่าย - ค่าลดหย่อน", "เงินได้ = เงินได้พึงประเมิน", "ค่าลดหย่อน - ค่าใช้จ่าย"], a: 1 },
+            { q: "11. ค่าลดหย่อนส่วนตัวขั้นพื้นฐานของผู้เสียภาษี หักลดหย่อนได้เท่าใด?", c: ["30,000 บาท", "50,000 บาท", "60,000 บาท", "100,000 บาท"], a: 2 },
+            { q: "12. ภาษีใดนำมาใช้ทดแทนภาษีโรงเรือนและที่ดินในปัจจุบัน?", c: ["ภาษีมูลค่าเพิ่มส่วนเสริม", "ภาษีที่ดินและสิ่งปลูกสร้าง", "ภาษีป้ายอัตราใหม่", "ภาษีมรดกที่ดิน"], a: 1 },
+            { q: "13. การหักภาษี ณ ที่จ่าย มีวัตถุประสงค์หลักเพื่ออะไร?", c: ["เพื่อให้รัฐยึดเงินทันที", "ช่วยผู้เสียภาษีทยอยจ่ายล่วงหน้าทีละน้อย", "เพื่อลงโทษผู้เสียภาษีล่าช้า", "นำไปแจกจ่ายให้การกุศล"], a: 1 },
+            { q: "14. ภาษีป้าย จัดเก็บโดยหน่วยงานใด?", c: ["กรมสรรพากร", "องค์กรปกครองส่วนท้องถิ่น (เช่น อบต./เทศบาล)", "กระทรวงการคลัง", "สำนักงานตำรวจแห่งชาติ"], a: 1 },
+            { q: "15. หน้าที่สำคัญที่สุดเกี่ยวกับระบบภาษีในฐานะพลเมืองดีคืออะไร?", c: ["หลีกเลี่ยงการเสียภาษี", "ขอคืนภาษีเกินความจริง", "เสียภาษีอย่างถูกต้อง ครบถ้วน และตรงเวลา", "ปล่อยให้เป็นหน้าที่ของคนรวย"], a: 2 }
         ];
 
-        // ตัวแปรเก็บสถานะการเล่นเกม
-        let playerName = 'ผู้เล่นทั่วไป';
-        let quizList = [];
-        let currentIndex = 0;
+        let currentQuestionIndex = 0;
         let score = 0;
-        let attempts = 0;
-        let isAnswered = false;
+        let attemptsForCurrentQ = 0;
+        let playerName = "";
 
-        // ดึงชื่อผู้เล่นจากหน้าล็อกอิน
         window.onload = function() {
-            playerName = localStorage.getItem('playerName') || 'ผู้เล่นทั่วไป';
-            showStartScreen();
+            playerName = localStorage.getItem('playerName') || "นักเรียนไร้ชื่อ";
+            document.getElementById('player-display-name').innerText = playerName;
         };
 
-        // ฟังก์ชันสลับคำถาม (Shuffle)
-        function shuffleArray(array) {
-            const arr = [...array];
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
-        // ==========================================
-        // 1. หน้าจอเริ่มต้น (Start Screen)
-        // ==========================================
-        function showStartScreen() {
-            const container = document.getElementById('game-container');
-            container.innerHTML = `
-                <div class="cute-panel text-center animate-pop">
-                    <div class="mb-4 inline-block bg-pink-100 p-4 rounded-full text-pink-500 shadow-sm border border-pink-200">
-                        <i class="fa-solid fa-gamepad text-5xl"></i>
-                    </div>
-                    <h1 class="text-3xl font-bold text-purple-600 mb-2">เกมที่ 1: ตะลุยโลกภาษี</h1>
-                    <p class="text-gray-500 mb-6 text-sm">ยินดีต้อนรับผู้เล่นคนเก่ง <span class="font-bold text-pink-500">${playerName}</span>! ✨ มาท้าทายความรู้กัน</p>
-                    
-                    <div class="bg-pink-50 border-2 border-pink-100 p-5 rounded-2xl mb-6 text-left text-sm text-gray-700">
-                        <h3 class="font-bold text-pink-600 mb-3 text-base">⭐ กติกาการเล่น (สุ่ม 15 ข้อ):</h3>
-                        <div class="space-y-2">
-                            <p class="flex items-center gap-2"><span class="bg-green-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">1</span> ตอบถูกครั้งแรก: <span class="text-green-600 font-bold">+10 คะแนน</span></p>
-                            <p class="flex items-center gap-2"><span class="bg-blue-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">2</span> ตอบถูกครั้งที่ 2: <span className="text-blue-600 font-bold">+5 คะแนน</span></p>
-                            <p class="flex items-center gap-2"><span class="bg-purple-400 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</span> ตอบถูกครั้งที่ 3: <span class="text-purple-600 font-bold">+2 คะแนน</span></p>
-                        </div>
-                        <div class="mt-4 bg-red-100 text-red-700 p-3 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation text-lg"></i> ตอบผิด 3 ครั้ง: หัก 5 คะแนน & บังคับข้ามทันที!
-                        </div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <button onclick="startGame()" class="w-full bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold py-4 rounded-full shadow-md text-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-                            เริ่มตะลุยด่าน (สุ่มข้อสอบ)! <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                        <button onclick="window.location.href = 'index.html'" class="w-full bg-white hover:bg-gray-50 text-gray-500 border-2 border-gray-200 font-bold py-3.5 rounded-full shadow-sm text-base flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-house"></i> กลับหน้าหลัก
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // เริ่มเกมและทำการสุ่มคำถาม
         function startGame() {
-            quizList = shuffleArray(allQuestions);
-            currentIndex = 0;
-            score = 0;
-            attempts = 0;
-            isAnswered = false;
-            showQuestionScreen();
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('gameplay-screen').classList.remove('hidden');
+            loadQuestion();
         }
 
-        // ==========================================
-        // 2. หน้าจอเล่นเกมคำถาม (Question Screen)
-        // ==========================================
-        function showQuestionScreen() {
-            const currentQuestion = quizList[currentIndex];
-            isAnswered = false;
+        function loadQuestion() {
+            attemptsForCurrentQ = 0;
+            document.getElementById('feedback-message').classList.add('hidden');
             
-            const container = document.getElementById('game-container');
-            container.innerHTML = `
-                <div id="playing-card" class="cute-panel animate-pop shadow-xl">
-                    <div class="flex justify-between items-center mb-5 pb-3 border-b-2 border-dashed border-purple-100">
-                        <div class="flex items-center gap-3">
-                            <button onclick="window.location.href = 'index.html'" class="bg-gray-100 hover:bg-pink-100 text-gray-500 w-10 h-10 rounded-full flex justify-center items-center">
-                                <i class="fa-solid fa-house"></i>
-                            </button>
-                            <span class="text-sm font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full">
-                                ข้อ ${currentIndex + 1} / ${quizList.length}
-                            </span>
-                        </div>
-                        <span class="text-sm font-bold text-white bg-pink-400 px-4 py-1.5 rounded-full">
-                            คะแนน: ${score}
-                        </span>
-                    </div>
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('current-question-num').innerText = currentQuestionIndex + 1;
+            updateHearts();
 
-                    <h2 class="text-base sm:text-lg font-bold text-gray-700 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        ${currentQuestion.question}
-                    </h2>
+            const currentQ = questions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = currentQ.q;
 
-                    <div class="space-y-3 mb-5" id="options-box">
-                        ${currentQuestion.options.map((option, idx) => `
-                            <button onclick="checkAnswer(this, '${option.replace(/'/g, "\\'")}')" class="option-btn">
-                                ${option}
-                            </button>
-                        `).join('')}
-                    </div>
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = '';
 
-                    <div id="feedback-box" class="hidden p-4 rounded-xl text-sm font-bold mb-3"></div>
-
-                    <div id="explanation-box" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-2xl animate-pop text-sm text-slate-600">
-                        <span class="font-bold text-blue-500 block mb-1"><i class="fa-solid fa-lightbulb"></i> คำอธิบาย:</span>
-                        <p id="explanation-text"></p>
-                    </div>
-
-                    <div id="attempts-box" class="text-center mt-3 text-xs text-gray-500 bg-gray-100 py-1.5 px-3 rounded-full inline-block mx-auto w-full">
-                        <i class="fa-solid fa-circle-exclamation mr-1 text-yellow-500"></i> โอกาสตอบผิดที่เหลือ: <span id="attempts-left">3</span> ครั้งก่อนโดนข้าม
-                    </div>
-                </div>
-            `;
-            document.getElementById('attempts-left').innerText = 3 - attempts;
-        }
-
-        // ฟังก์ชันตรวจคำตอบ
-        function checkAnswer(btnElement, selectedVal) {
-            if (isAnswered) return;
-
-            const currentQuestion = quizList[currentIndex];
-            const isCorrect = selectedVal === currentQuestion.answer;
-            const optionsBox = document.getElementById('options-box');
-
-            if (isCorrect) {
-                isAnswered = true;
-                btnElement.classList.add('option-correct');
-                
-                // คำนวณคะแนนตามจำนวนครั้งที่ตอบผิด
-                let points = 10;
-                if (attempts === 1) points = 5;
-                else if (attempts === 2) points = 2;
-
-                score += points;
-
-                // อัปเดต UI ข้อความอธิบาย
-                showFeedback(`🎉 ยอดเยี่ยม! คุณตอบถูก ได้รับ +${points} คะแนน`, 'correct');
-                showExplanation(currentQuestion.explanation);
-                disableAllButtons();
-
-                // เปลี่ยนหน้าไปข้อถัดไป
-                setTimeout(() => {
-                    nextQuestion();
-                }, 3000);
-
-            } else {
-                btnElement.classList.add('option-wrong');
-                btnElement.disabled = true;
-                attempts++;
-
-                const playingCard = document.getElementById('playing-card');
-                playingCard.classList.add('animate-shake');
-                setTimeout(() => playingCard.classList.remove('animate-shake'), 500);
-
-                if (attempts >= 3) {
-                    isAnswered = true;
-                    score = Math.max(0, score - 5); // ป้องกันคะแนนรวมติดลบ
-
-                    // บังคับเปลี่ยนสีปุ่มเฉลยข้อที่ถูกเป็นสีเขียว
-                    highlightCorrectAnswer(currentQuestion.answer);
-
-                    showFeedback(`😭 ผิดครบ 3 ครั้งแล้ว! ระบบขอนำข้ามข้อนี้และหัก -5 แต้ม`, 'skip');
-                    showExplanation(currentQuestion.explanation);
-                    disableAllButtons();
-
-                    setTimeout(() => {
-                        nextQuestion();
-                    }, 4000);
-                } else {
-                    document.getElementById('attempts-left').innerText = 3 - attempts;
-                    showFeedback(`❌ ยังไม่ถูกนะจ๊ะ! ลองคิดใหม่อีกครั้งนะ (เหลืออีก ${3 - attempts} ครั้ง)`, 'incorrect');
-                }
-            }
-        }
-
-        function highlightCorrectAnswer(correctAnswer) {
-            const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(btn => {
-                if (btn.innerText.trim() === correctAnswer) {
-                    btn.classList.add('option-correct');
-                }
+            currentQ.c.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = "choice-btn w-full bg-purple-50 hover:bg-purple-100 text-slate-700 font-bold py-4 px-6 rounded-2xl border-2 border-purple-200 text-left flex items-start gap-3 shadow-sm";
+                button.innerHTML = `<span class="bg-purple-200 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">${String.fromCharCode(65 + index)}</span><span class="leading-tight text-sm md:text-base">${choice}</span>`;
+                button.onclick = () => selectChoice(index, button);
+                choicesContainer.appendChild(button);
             });
         }
 
-        function disableAllButtons() {
-            const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(btn => btn.disabled = true);
-            document.getElementById('attempts-box').classList.add('hidden');
+        function updateHearts() {
+            document.getElementById('hearts-display').innerText = '❤️'.repeat(3 - attemptsForCurrentQ) + '🖤'.repeat(attemptsForCurrentQ);
         }
 
-        function showFeedback(msg, status) {
-            const feedbackBox = document.getElementById('feedback-box');
-            feedbackBox.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700', 'bg-yellow-50', 'text-yellow-700');
-            feedbackBox.innerText = msg;
+        function selectChoice(selectedIndex, clickedButton) {
+            if (clickedButton.disabled) return;
+            const currentQ = questions[currentQuestionIndex];
+            const feedback = document.getElementById('feedback-message');
 
-            if (status === 'correct') {
-                feedbackBox.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
-            } else if (status === 'skip') {
-                feedbackBox.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
+            if (selectedIndex === currentQ.a) {
+                let points = attemptsForCurrentQ === 0 ? 10 : attemptsForCurrentQ === 1 ? 5 : 2;
+                score += points;
+                document.getElementById('live-score').innerText = score;
+
+                clickedButton.className = "choice-btn w-full bg-emerald-100 text-emerald-800 font-bold py-4 px-6 rounded-2xl border-2 border-emerald-300 text-left flex items-start gap-3 shadow-md pointer-events-none";
+                document.querySelectorAll('.choice-btn').forEach(btn => btn.style.pointerEvents = 'none');
+
+                feedback.className = "text-center font-bold text-lg p-3 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200";
+                feedback.innerHTML = `🎉 ถูกต้อง! (+${points} คะแนน)`;
+                feedback.classList.remove('hidden');
+                setTimeout(nextQuestion, 1200);
+
             } else {
-                feedbackBox.classList.add('bg-yellow-50', 'text-yellow-700', 'border', 'border-yellow-200');
-            }
-        }
+                attemptsForCurrentQ++;
+                updateHearts();
+                clickedButton.className = "choice-btn w-full bg-rose-100 text-rose-700 font-bold py-4 px-6 rounded-2xl border-2 border-rose-300 text-left flex items-start gap-3 opacity-60 shadow-inner pointer-events-none";
+                clickedButton.disabled = true;
 
-        function showExplanation(text) {
-            const explanationBox = document.getElementById('explanation-box');
-            document.getElementById('explanation-text').innerText = text;
-            explanationBox.classList.remove('hidden');
+                if (attemptsForCurrentQ >= 3) {
+                    score = Math.max(0, score - 5);
+                    document.getElementById('live-score').innerText = score;
+                    document.querySelectorAll('.choice-btn').forEach(btn => btn.style.pointerEvents = 'none');
+
+                    feedback.className = "text-center font-bold text-lg p-3 rounded-xl bg-rose-100 text-rose-700 border border-rose-200";
+                    feedback.innerHTML = `⚠️ ตอบผิดครบ 3 ครั้ง โดนปรับ (-5 คะแนน) ข้ามข้อ!`;
+                    feedback.classList.remove('hidden');
+                    setTimeout(nextQuestion, 2000);
+                } else {
+                    feedback.className = "text-center font-bold text-base p-2 rounded-xl bg-yellow-50 text-yellow-700 border border-yellow-200";
+                    feedback.innerHTML = `❌ ยังไม่ใช่จ้า! เหลือโอกาสอีก ${3 - attemptsForCurrentQ} ครั้ง`;
+                    feedback.classList.remove('hidden');
+                }
+            }
         }
 
         function nextQuestion() {
-            if (currentIndex + 1 < quizList.length) {
-                currentIndex++;
-                attempts = 0;
-                showQuestionScreen();
-            } else {
-                showEndScreen();
-            }
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) loadQuestion();
+            else endGame();
         }
 
-        // ==========================================
-        // 3. หน้าจอจบเกม (End Screen) และส่งไปคลาวด์
-        // ==========================================
-        function showEndScreen() {
-            // บันทึกลง LocalStorage
+        function endGame() {
+            document.getElementById('gameplay-screen').classList.add('hidden');
+            document.getElementById('summary-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
             localStorage.setItem('game1Score', score);
-            const g2Score = parseInt(localStorage.getItem('game2Score') || '0');
-            const totalScore = score + g2Score;
-            localStorage.setItem('globalScore', totalScore);
 
-            const container = document.getElementById('game-container');
-            container.innerHTML = `
-                <div class="cute-panel text-center animate-pop">
-                    <div class="text-6xl mb-4">🏆</div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">เก่งมาก! ทำครบ 15 ข้อแล้ว</h2>
-                    <p class="text-gray-500 text-sm mb-6" id="cloud-status-text">🔄 กำลังส่งรายงานคะแนนไปให้แอดมิน coco บนคลาวด์...</p>
-
-                    <div class="bg-purple-50 border-2 border-purple-100 py-5 px-8 rounded-3xl inline-block mb-8 shadow-inner">
-                        <span class="block text-sm text-purple-500 font-bold mb-1">คะแนนด่าน 1 ที่ได้</span>
-                        <span class="text-6xl font-black text-purple-600 drop-shadow-md">${score}</span>
-                        <span class="text-sm font-bold text-purple-400 ml-1">/ 150</span>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <button onclick="startGame()" class="w-full bg-green-400 hover:bg-green-500 text-white font-bold py-4 rounded-full shadow-md transition-transform active:scale-95">
-                            <i class="fa-solid fa-rotate-left mr-1"></i> เล่นอีกรอบ (สุ่มข้อสอบใหม่)
-                        </button>
-                        <button onclick="window.location.href = 'index.html'" class="w-full bg-white hover:bg-gray-50 text-gray-600 border-2 border-gray-200 font-bold py-3.5 rounded-full shadow-sm text-base">
-                            <i class="fa-solid fa-house mr-1"></i> ดูคะแนนรวมที่หน้าหลัก
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            // ยิงเอฟเฟกต์จุดพลุฉลองกลางหน้าจอ
-            if (window.confetti) {
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-            }
-
-            // สั่งฟังก์ชันส่งคะแนนไปยังคลาวด์ Google Sheets และ Firebase แอดมิน coco
-            sendScoresToCloud(score, totalScore);
-        }
-
-        // =======================================================
-        // ฟังก์ชันยิงข้อมูลไปหา Google Sheets และ Firebase
-        // =======================================================
-        async function sendScoresToCloud(game1Score, totalScore) {
-            const statusText = document.getElementById('cloud-status-text');
-
-            // 1. ยิงข้อมูลไปที่ Google Sheets (คุณครู) ของจริง 100%
-            try {
-                // ยิง POST ข้ามเซิร์ฟเวอร์แบบ No-CORS (ปลอดภัยและไม่พังหน้างาน)
-                await fetch(GOOGLE_SHEET_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: playerName,
-                        game1Score: parseInt(game1Score),
-                        totalScore: parseInt(totalScore)
-                    })
-                });
-                
-                if (statusText) {
-                    statusText.innerHTML = `✅ บันทึกคะแนนลง Google Sheets และส่งให้แอดมิน coco เรียบร้อยแล้ว!`;
-                    statusText.classList.remove('text-gray-500');
-                    statusText.classList.add('text-green-600', 'font-bold');
-                }
-            } catch (err) {
-                console.error("Google Sheets Error:", err);
-                if (statusText) {
-                    statusText.innerText = "❌ การยิงคะแนนเข้า Google Sheets ติดขัดเล็กน้อย แต่อยู่ในเครื่องแล้ว!";
-                }
-            }
-
-            // 2. เรียกใช้งานระบบส่งประวัติเข้าหลังบ้านแอดมิน coco ในส่วนโมดูล Firebase
-            if (typeof window.saveToFirebaseCloud === 'function') {
-                window.saveToFirebaseCloud(game1Score, totalScore);
-            }
-        }
-    </script>
-
-    <!-- ========================================== -->
-    <!-- ส่วนของ Firebase: บันทึกเข้า Leaderboard แอดมิน coco -->
-    <!-- ========================================== -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        let db, appId;
-
-        async function initFirebase() {
-            try {
-                const configString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-                if (!configString) return; 
-
-                const firebaseConfig = JSON.parse(configString);
-                const app = initializeApp(firebaseConfig);
-                const auth = getAuth(app);
-                db = getFirestore(app);
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                console.error("Firebase setup error:", e);
+            const statusDiv = document.getElementById('sheet-status');
+            if (WEB_APP_URL === "วางลิงก์ของคุณครูตรงนี้ครับ" || !WEB_APP_URL.includes("script.google.com")) {
+                statusDiv.className = "text-xs font-semibold text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-200 text-left leading-normal";
+                statusDiv.innerHTML = `❌ <strong>พบปัญหา:</strong> คุณครูยังไม่ได้ใส่ลิงก์ Web App URL ในโค้ดครับ`;
+                document.getElementById('send-score-btn').disabled = true;
+                document.getElementById('send-score-btn').style.opacity = '0.5';
+            } else {
+                statusDiv.className = "text-xs font-semibold text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-200 text-center";
+                statusDiv.innerHTML = `☁️ ลิงก์เชื่อมโยงเรียบร้อย กดส่งคะแนนด้านล่างได้เลย!`;
             }
         }
 
-        window.saveToFirebaseCloud = async function(game1Score, totalScore) {
-            const player = localStorage.getItem('playerName') || 'ผู้เล่นทั่วไป';
-            if (!db) return;
+        function sendScoreToSheet() {
+            const statusDiv = document.getElementById('sheet-status');
+            const sendBtn = document.getElementById('send-score-btn');
 
-            try {
-                // บันทึกและส่งชื่อ-คะแนน-แอดมินไปที่ตาราง leaderboard ส่วนกลางของแอป
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard', player);
-                await setDoc(docRef, {
-                    name: player,
-                    game1Score: parseInt(game1Score),
-                    score: parseInt(totalScore),
-                    admin: "coco",
-                    adminName: "coco",
-                    timestamp: serverTimestamp()
-                }, { merge: true });
-                console.log("ส่งประวัติไปหา coco บน Cloud Firebase สำเร็จ!");
-            } catch (e) {
-                console.error("Firebase Save Score Error: ", e);
-            }
-        };
+            statusDiv.className = "text-xs font-semibold text-indigo-600 bg-indigo-50 p-2 rounded-lg border border-indigo-200 text-center";
+            statusDiv.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> กำลังส่งคะแนนของ "${playerName}" ไปยัง Google Sheets...`;
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = '0.5';
 
-        initFirebase();
+            const requestUrl = `${WEB_APP_URL}?name=${encodeURIComponent(playerName)}&game1Score=${score}&totalScore=${score}`;
+
+            fetch(requestUrl, { method: 'GET', mode: 'no-cors' })
+            .then(() => {
+                statusDiv.className = "text-xs font-semibold text-emerald-600 bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-center";
+                statusDiv.innerHTML = `🎉 <strong>ส่งคะแนนสำเร็จ!</strong> ข้อมูลของ "${playerName}" บันทึกใน Google Sheets แล้วครับ!`;
+                sendBtn.innerHTML = `📊 ส่งคะแนนเรียบร้อย!`;
+                sendBtn.className = "w-full bg-slate-300 text-slate-500 font-bold py-3 px-6 rounded-xl text-md cursor-not-allowed pointer-events-none";
+            })
+            .catch(error => {
+                statusDiv.className = "text-xs font-semibold text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-200 text-center";
+                statusDiv.innerHTML = `❌ ขัดข้อง: ไม่สามารถติดต่อเซิร์ฟเวอร์ได้`;
+                sendBtn.disabled = false;
+                sendBtn.style.opacity = '1';
+            });
+        }
     </script>
 </body>
 </html>
