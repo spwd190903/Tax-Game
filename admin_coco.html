@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coco Admin Dashboard 📊</title>
+    <title>Admin Dashboard 📊</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body {
             font-family: 'Mali', cursive;
-            background-color: #f0fdf4; /* ธีมสีเขียวพาสเทลสะอาดตา */
+            background-color: #f0fdf4;
             background-image: radial-gradient(#bbf7d0 1.5px, transparent 1.5px), radial-gradient(#bbf7d0 1.5px, #f0fdf4 1.5px);
             background-size: 40px 40px;
             background-position: 0 0, 20px 20px;
@@ -19,58 +19,86 @@
         .custom-card:hover { transform: translateY(-2px); }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="min-h-screen p-4 md:p-8 flex items-center justify-center">
 
-    <div class="max-w-6xl mx-auto space-y-6">
+    <!-- 1. หน้าจอเข้าสู่ระบบ (Login Screen) -->
+    <div id="login-screen" class="bg-white rounded-[2rem] p-8 shadow-2xl border-4 border-emerald-200 w-full max-w-md text-center animate-fade-in">
+        <div class="text-6xl mb-4 inline-block bg-emerald-50 p-4 rounded-full">🔐</div>
+        <h1 class="text-3xl font-black text-emerald-600 mb-1">Admin Login</h1>
+        <p class="text-slate-500 font-bold text-sm mb-6">ระบบจัดการข้อมูลคะแนนนักเรียน</p>
+
+        <div class="space-y-4">
+            <div>
+                <input type="password" id="admin-password" placeholder="ใส่รหัสผ่าน..." class="w-full px-4 py-3 text-center text-lg rounded-xl border-2 border-slate-200 focus:outline-none focus:border-emerald-500 font-bold text-slate-700 tracking-widest" onkeypress="handleKeyPress(event)">
+            </div>
+            
+            <!-- ข้อความแจ้งเตือนรหัสผิด -->
+            <div id="error-msg" class="hidden bg-rose-50 border border-rose-200 text-rose-600 font-bold text-sm p-3 rounded-xl">
+                ❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่!
+            </div>
+
+            <button onclick="checkPassword()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 px-6 rounded-xl text-lg border-b-4 border-emerald-700 transition-all active:transform active:translate-y-1">
+                เข้าสู่ระบบ <i class="fa-solid fa-arrow-right-to-bracket ml-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. หน้าจอแผงควบคุม (Dashboard) - ซ่อนไว้ก่อน -->
+    <div id="dashboard-screen" class="hidden w-full max-w-6xl mx-auto space-y-6">
         
+        <!-- ส่วนหัวแผงควบคุม -->
         <div class="bg-white rounded-[2rem] p-6 shadow-xl border-4 border-emerald-200 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4 text-center md:text-left">
-                <div class="bg-emerald-100 p-4 rounded-2xl text-4xl">🥥</div>
+                <div class="bg-emerald-100 p-4 rounded-2xl text-4xl">👨‍💻</div>
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-black text-emerald-600">Coco Admin Dashboard</h1>
-                    <p class="text-xs md:text-sm text-slate-400 font-bold">ระบบสรุปและติดตามคะแนนของนักเรียนแบบเรียลไทม์ ✨</p>
+                    <h1 class="text-2xl md:text-3xl font-black text-emerald-600">Admin Dashboard</h1>
+                    <p class="text-xs md:text-sm text-slate-400 font-bold">ยินดีต้อนรับเข้าสู่ระบบจัดการคะแนน ✨</p>
                 </div>
             </div>
             <button onclick="fetchScores()" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 px-6 rounded-2xl shadow-md border-b-4 border-emerald-700 transition-all flex items-center gap-2 active:transform active:translate-y-1">
-                <i class="fa-solid fa-rotate mr-1"></i> รีเฟรชดึงข้อมูลล่าสุด
+                <i class="fa-solid fa-rotate mr-1"></i> รีเฟรชข้อมูล
             </button>
         </div>
 
+        <!-- การ์ดแสดงสถิติภาพรวม -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- คนเล่นทั้งหมด -->
             <div class="custom-card bg-white rounded-2xl p-5 border-2 border-emerald-100 flex items-center justify-between shadow-sm">
                 <div>
-                    <p class="text-xs text-slate-400 font-bold">นักเรียนที่ส่งคะแนนแล้ว</p>
+                    <p class="text-xs text-slate-400 font-bold">ส่งคะแนนแล้ว</p>
                     <h3 id="stat-total" class="text-3xl font-black text-slate-700 mt-1">0 คน</h3>
                 </div>
                 <span class="text-4xl bg-blue-50 p-3 rounded-xl text-blue-500">🧑‍🎓</span>
             </div>
+            <!-- คะแนนสูงสุด -->
             <div class="custom-card bg-white rounded-2xl p-5 border-2 border-emerald-100 flex items-center justify-between shadow-sm">
                 <div>
-                    <p class="text-xs text-slate-400 font-bold">คะแนนรวมสูงสุดในห้อง</p>
+                    <p class="text-xs text-slate-400 font-bold">คะแนนสูงสุด</p>
                     <h3 id="stat-max" class="text-3xl font-black text-amber-500 mt-1">0 แต้ม</h3>
                 </div>
                 <span class="text-4xl bg-amber-50 p-3 rounded-xl text-amber-500">🏆</span>
             </div>
+            <!-- คะแนนเฉลี่ย -->
             <div class="custom-card bg-white rounded-2xl p-5 border-2 border-emerald-100 flex items-center justify-between shadow-sm">
                 <div>
-                    <p class="text-xs text-slate-400 font-bold">คะแนนเฉลี่ยของห้อง</p>
+                    <p class="text-xs text-slate-400 font-bold">คะแนนเฉลี่ย</p>
                     <h3 id="stat-avg" class="text-3xl font-black text-emerald-600 mt-1">0 แต้ม</h3>
                 </div>
                 <span class="text-4xl bg-emerald-50 p-3 rounded-xl text-emerald-500">📊</span>
             </div>
         </div>
 
+        <!-- ส่วนของตารางข้อมูลและตัวกรอง -->
         <div class="bg-white rounded-[2rem] shadow-xl border-4 border-emerald-100 overflow-hidden">
-            
             <div class="p-5 border-b-2 border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3 justify-between items-center">
                 <h2 class="font-black text-slate-700 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-emerald-500"></i> ตารางรายชื่อและคะแนนทั้งหมด
+                    <i class="fa-solid fa-list-check text-emerald-500"></i> ตารางคะแนนทั้งหมด
                 </h2>
                 <div class="relative w-full sm:w-64">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
-                    <input type="text" id="search-input" oninput="filterData()" placeholder="พิมพ์ชื่อนักเรียนเพื่อค้นหา..." class="w-full pl-9 pr-4 py-2 text-sm rounded-xl border-2 border-slate-200 focus:outline-none focus:border-emerald-400 font-medium">
+                    <input type="text" id="search-input" oninput="filterData()" placeholder="พิมพ์ชื่อค้นหา..." class="w-full pl-9 pr-4 py-2 text-sm rounded-xl border-2 border-slate-200 focus:outline-none focus:border-emerald-400 font-medium">
                 </div>
             </div>
 
@@ -81,40 +109,60 @@
                             <th class="px-6 py-4">วัน-เวลาที่ส่ง</th>
                             <th class="px-6 py-4">ชื่อนักเรียน</th>
                             <th class="px-6 py-4 text-center">คะแนนเกม 1</th>
-                            <th class="px-6 py-4 text-center">คะแนนรวมทั้งหมด</th>
+                            <th class="px-6 py-4 text-center">คะแนนรวม</th>
                         </tr>
                     </thead>
                     <tbody id="score-table-body" class="divide-y divide-slate-100 font-semibold text-slate-600 text-sm">
                         <tr id="loading-row">
                             <td colspan="4" class="px-6 py-10 text-center text-slate-400 font-medium">
-                                <i class="fa-solid fa-spinner fa-spin mr-2 text-emerald-500"></i> กำลังโหลดข้อมูลจากตารางระบบแอดมิน...
+                                <i class="fa-solid fa-spinner fa-spin mr-2 text-emerald-500"></i> กำลังโหลดข้อมูล...
                             </td>
                         </tr>
                         <tr id="error-row" class="hidden">
                             <td colspan="4" id="error-text" class="px-6 py-10 text-center text-rose-500 font-bold bg-rose-50/50">
-                                เกิดข้อผิดพลาดในการโหลดข้อมูล
+                                เกิดข้อผิดพลาด
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
 
     <script>
         // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
-        // นำลิงก์ Web App URL อันล่าสุด (ที่ได้จากข้อ 4 ในส่วนที่ 1) มาวางตรงนี้ครับ
+        // อย่าลืม! วางลิงก์ Web App URL ลงในเครื่องหมาย " " ด้านล่างนี้เหมือนเดิมนะครับ
         // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwLdQt9q73NxFC9N04VKrlHjnLZ11RqRnPiS2wSNQ-Dz1B9JuVhsb1dKvZd8KfDxwHrFA/exec";
         
         let allData = [];
 
-        // เรียกข้อมูลออโต้ตอนเปิดหน้าเว็บครั้งแรก
-        window.onload = function() {
-            fetchScores();
-        };
+        // ฟังก์ชันตรวจสอบรหัสผ่าน
+        function checkPassword() {
+            const pwdInput = document.getElementById('admin-password').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (pwdInput === "190903") {
+                // รหัสถูก: ซ่อนหน้า Login -> โชว์ Dashboard -> ดึงข้อมูล
+                document.body.classList.remove('flex', 'items-center', 'justify-center');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                fetchScores();
+            } else {
+                // รหัสผิด: โชว์ข้อความเตือน
+                errorMsg.classList.remove('hidden');
+                document.getElementById('admin-password').value = ""; // เคลียร์ช่อง
+            }
+        }
 
+        // กด Enter ในช่องใส่รหัสผ่านได้เลย
+        function handleKeyPress(e) {
+            if (e.key === "Enter") {
+                checkPassword();
+            }
+        }
+
+        // ฟังก์ชันดึงข้อมูลจาก Google Sheets
         async function fetchScores() {
             const tableBody = document.getElementById('score-table-body');
             const loadingRow = document.getElementById('loading-row');
@@ -127,7 +175,7 @@
             if (WEB_APP_URL === "วางลิงก์ของคุณครูตรงนี้ครับ" || !WEB_APP_URL.includes("script.google.com")) {
                 loadingRow.classList.add('hidden');
                 errorRow.classList.remove('hidden');
-                document.getElementById('error-text').innerText = "❌ ปัญหา: คุณครูยังไม่ได้นำลิงก์ Web App URL มาใส่ในโค้ดบรรทัดที่ 92 ครับ";
+                document.getElementById('error-text').innerText = "❌ กรุณาใส่ลิงก์ Web App URL ในโค้ดบรรทัดที่ 145 ครับ";
                 return;
             }
             
@@ -138,7 +186,7 @@
                 loadingRow.classList.add('hidden');
                 
                 if (data.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-10 text-center text-slate-400 font-bold">📭 ยังไม่มีข้อมูลคะแนนส่งเข้ามาในระบบเลยครับ</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-10 text-center text-slate-400 font-bold">📭 ยังไม่มีข้อมูลคะแนนส่งเข้ามาครับ</td></tr>`;
                     updateStats([]);
                     return;
                 }
@@ -151,7 +199,7 @@
                 console.error(error);
                 loadingRow.classList.add('hidden');
                 errorRow.classList.remove('hidden');
-                document.getElementById('error-text').innerText = "❌ ไม่สามารถดึงข้อมูลได้ (โปรดตรวจสอบว่าหน้า Apps Script ถูก Deploy ใหม่เป็นแบบ Web App / ผู้มีสิทธิ์เข้าถึง: ทุกคน (Anyone) แล้วหรือยัง)";
+                document.getElementById('error-text').innerText = "❌ ไม่สามารถดึงข้อมูลได้ โปรดตรวจสอบการ Deploy Web App";
             }
         }
 
