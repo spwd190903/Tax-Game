@@ -628,38 +628,7 @@
             currentGlobalScore += score;
             localStorage.setItem('globalScore', currentGlobalScore);
 <script type="module">
-        // ==============================================================
-        // ฟังก์ชันส่งคะแนนขึ้นระบบ Cloud เพื่อให้แอดมิน (coco) มองเห็น
-        // ==============================================================
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        window.saveScoreToCloud = async function(score) {
-            // 1. ดึงชื่อผู้เล่นที่ล็อกอินมาจากหน้าหลัก
-            const playerName = localStorage.getItem('playerName') || 'ผู้เล่นนิรนาม';
-            
-            // ตรวจสอบตัวแปรระบบ Firebase
-            if (typeof __firebase_config === 'undefined' || !playerName) return;
-            
-            try {
-                const app = shadow.getApp(); // ดึงอินสแตนซ์ App ของระบบ
-                const db = getFirestore(app);
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                
-                // 2. อ้างอิงไปยังกล่องเก็บคะแนน
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'global_leaderboard', playerName);
-                
-                // 3. ส่งข้อมูลขึ้น Cloud
-                await setDoc(docRef, {
-                    name: playerName,
-                    score: parseInt(score),
-                    timestamp: serverTimestamp() // บันทึกเวลาเซิร์ฟเวอร์ล่าสุด
-                }, { merge: true });
-                
-                console.log("บันทึกคะแนนส่งให้แอดมินสำเร็จ!");
-            } catch (error) {
-                console.error("เกิดข้อผิดพลาดในการส่งคะแนน:", error);
-            }
-        }
+       
     </script>
             // เล่นเอฟเฟกต์จุดพลุฉลอง
             if(window.confetti) {
