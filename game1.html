@@ -467,321 +467,287 @@
         ];
 
         // ตัวแปรสถานะของเกม
-        let currentQIndex = 0;
-        let score = 0;
-        let wrongAttempts = 0;
-        let isProcessing = false; 
-        let playerName = "Player"; 
+let currentQIndex = 0;
+let score = 0;
+let wrongAttempts = 0;
+let isProcessing = false;
+let playerName = "Player";
 
-        // ตรวจสอบชื่อผู้เล่นเมื่อหน้าจอถูกโหลด
-        window.onload = function() {
-            playerName = localStorage.getItem('playerName');
-            if (!playerName) {
-                // หากยังไม่มีชื่อ ให้แสดงหน้าล็อกอิน
-                showScreen('screen-login');
-            } else {
-                checkRoleAndRoute();
-            }
-        };
+window.onload = function() {
+  playerName = localStorage.getItem('playerName');
+  if (!playerName) {
+    showScreen('screen-login');
+  } else {
+    checkRoleAndRoute();
+  }
+};
 
-        // ฟังก์ชันล็อกอินจากหน้าล็อกอิน
-        function login() {
-            const nameInput = document.getElementById('login-username').value.trim();
-            if (nameInput) {
-                localStorage.setItem('playerName', nameInput);
-                playerName = nameInput;
-                checkRoleAndRoute();
-            } else {
-                // แจ้งเตือนสั่นปุ่มถ้ายกเว้นชื่อว่าง
-                const btn = document.querySelector('#screen-login button');
-                btn.classList.add('animate-wiggle', 'bg-red-500');
-                setTimeout(() => btn.classList.remove('animate-wiggle', 'bg-red-500'), 500);
-            }
+function login() {
+  const nameInput = document.getElementById('login-username').value.trim();
+  if (nameInput) {
+    localStorage.setItem('playerName', nameInput);
+    playerName = nameInput;
+    checkRoleAndRoute();
+  } else {
+    const btn = document.querySelector('#screen-login button');
+    btn.classList.add('animate-wiggle', 'bg-red-500');
+    setTimeout(() => btn.classList.remove('animate-wiggle', 'bg-red-500'), 500);
+  }
+}
+
+function checkRoleAndRoute() {
+  if (playerName.toLowerCase() === 'coco') {
+    showScreen('screen-admin');
+    loadAdminData();
+  } else {
+    document.getElementById('ui-welcome-player').innerText = `ยินดีต้อนรับคุณ ${playerName} คนเก่ง! ✨`;
+    document.getElementById('ui-player-name-display').innerText = playerName;
+    showScreen('screen-start');
+  }
+}
+
+function logout() {
+  localStorage.removeItem('playerName');
+  location.reload();
+}
+
+async function loadAdminData() {
+  const tbody = document.getElementById('admin-table-body');
+  tbody.innerHTML = '<tr><td colspan="3" class="text-center p-8 text-indigo-500 font-bold"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 block"></i> กำลังโหลดข้อมูลประวัติผู้เล่น...</td></tr>';
+  
+  setTimeout(async () => {
+    let data = null;
+    if (window.fetchAdminData) {
+      data = await window.fetchAdminData();
+    }
+    if (data && data.length > 0) {
+      renderAdminTable(data);
+    } else {
+      const localData = JSON.parse(localStorage.getItem('localLeaderboard') || '[]');
+      if(localData.length > 0) {
+        localData.sort((a,b) => b.score - a.score);
+        renderAdminTable(localData);
+      } else {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center p-6 text-slate-500 bg-slate-50 rounded-lg">ยังไม่มีประวัติการเล่นในระบบ</td></tr>';
+      }
+    }
+  }, 1000);
+}
+
+function renderAdminTable(data) {
+  const tbody = document.getElementById('admin-table-body');
+  let html = '';
+  data.forEach(item => {
+    html += `
+      <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+        <td class="p-3 font-semibold text-slate-700">${item.name}</td>
+        <td class="p-3 text-center font-bold text-indigo-600 bg-indigo-50/50">${item.score}</td>
+        <td class="p-3 text-right text-sm text-slate-500">${item.timestamp || item.date}</td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(el => { el.classList.add('hidden'); });
+  document.getElementById(screenId).classList.remove('hidden');
+}
+
+function goBackToMenu() {
+  window.location.href = 'index.html';
+}
+
+function startGame() {
+  currentQIndex = 0;
+  score = 0;
+  wrongAttempts = 0;
+  isProcessing = false;
+  document.getElementById('app').classList.remove('animate-pulse-border');
+  showScreen('screen-game');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const q = quizData[currentQIndex];
+  document.getElementById('ui-stage').innerText = `${currentQIndex + 1}/${quizData.length}`;
+  document.getElementById('ui-score').innerText = score;
+  document.getElementById('ui-question').innerText = q.question;
+
+  const heartsHtml = Array(3).fill(0).map((_, i) => {
+    if (i < 3 - wrongAttempts) {
+      return `<i class="fa-solid fa-heart text-red-400 animate-pulse" style="animation-delay: ${i*0.2}s"></i>`;
+    } else {
+      return `<i class="fa-regular fa-heart text-red-200"></i>`;
+    }
+  }).join('');
+  document.getElementById('ui-hearts').innerHTML = heartsHtml;
+
+  document.getElementById('ui-feedback-container').classList.add('hidden');
+  document.getElementById('ui-explanation-box').classList.add('hidden');
+  
+  const optionsContainer = document.getElementById('ui-options');
+  optionsContainer.innerHTML = '';
+
+  q.options.forEach((opt, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'cute-btn w-full text-left bg-white border-2 border-pink-100 hover:border-pink-300 hover:bg-pink-50 text-slate-700 font-bold py-4 px-5 rounded-2xl shadow-sm text-base flex justify-between items-center transition-colors';
+    btn.style.animation = `popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards ${index * 0.1}s`;
+    btn.style.opacity = '0';
+    const numBadge = `<span class="bg-pink-100 text-pink-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 font-black shrink-0 border border-pink-200">${index+1}</span>`;
+    btn.innerHTML = `<div class="flex items-center">${numBadge} <span>${opt}</span></div>`;
+    btn.onclick = () => checkAnswer(opt, btn);
+    optionsContainer.appendChild(btn);
+  });
+
+  const qBox = document.getElementById('question-box');
+  qBox.classList.remove('animate-pop-in');
+  void qBox.offsetWidth;
+  qBox.classList.add('animate-pop-in');
+}
+
+function checkAnswer(selectedOption, btnElement) {
+  if (isProcessing) return;
+  const q = quizData[currentQIndex];
+  const isCorrect = selectedOption === q.answer;
+  const buttons = document.getElementById('ui-options').querySelectorAll('button');
+  const feedbackContainer = document.getElementById('ui-feedback-container');
+  const feedbackBox = document.getElementById('ui-feedback-box');
+  const feedbackIcon = document.getElementById('ui-feedback-icon');
+  const feedbackText = document.getElementById('ui-feedback-text');
+  const explanationBox = document.getElementById('ui-explanation-box');
+  const explanationText = document.getElementById('ui-explanation-text');
+
+  if (isCorrect) {
+    isProcessing = true;
+    let pointsEarned = 0;
+    if (wrongAttempts === 0) pointsEarned = 10;
+    else if (wrongAttempts === 1) pointsEarned = 5;
+    else if (wrongAttempts === 2) pointsEarned = 2;
+    
+    score += pointsEarned;
+    document.getElementById('ui-score').innerText = score;
+    btnElement.className = 'w-full text-left bg-green-500 border-2 border-green-600 text-white font-bold py-4 px-5 rounded-2xl shadow-md text-base flex justify-between items-center animate-bounce-soft';
+    btnElement.innerHTML = `<span>${selectedOption}</span> <i class="fa-solid fa-circle-check text-2xl text-white ml-2"></i>`;
+    
+    feedbackContainer.classList.remove('hidden');
+    feedbackBox.className = 'rounded-2xl p-4 text-center border-2 font-bold text-lg flex items-center justify-center gap-3 bg-green-100 text-green-700 border-green-300';
+    feedbackIcon.className = 'fa-solid fa-star text-3xl text-green-500 animate-wiggle';
+    feedbackText.innerText = `เก่งมากเลย! รับไป ${pointsEarned} คะแนน 🎉`;
+    
+    explanationBox.classList.remove('hidden');
+    explanationText.innerText = q.explanation;
+    
+    buttons.forEach(b => {
+      b.disabled = true;
+      if (b !== btnElement) b.classList.add('opacity-50', 'scale-95');
+    });
+
+    if(window.confetti) {
+      confetti({particleCount: 40, spread: 60, origin: { y: 0.8 }, colors: ['#f472b6', '#a78bfa', '#34d399'] });
+    }
+    setTimeout(() => { nextQuestion(); }, 4000);
+  } else {
+    wrongAttempts++;
+    btnElement.classList.add('animate-wiggle', 'bg-red-50', 'border-red-300', 'text-red-700');
+    setTimeout(() => btnElement.classList.remove('animate-wiggle'), 500);
+    
+    const heartsHtml = Array(3).fill(0).map((_, i) => {
+      if (i < 3 - wrongAttempts) return `<i class="fa-solid fa-heart text-red-400 animate-pulse" style="animation-delay: ${i*0.2}s"></i>`;
+      else return `<i class="fa-solid fa-heart-crack text-slate-300"></i>`;
+    }).join('');
+    document.getElementById('ui-hearts').innerHTML = heartsHtml;
+
+    if (wrongAttempts >= 3) {
+      isProcessing = true;
+      score -= 5;
+      document.getElementById('ui-score').innerText = score;
+      feedbackContainer.classList.remove('hidden');
+      feedbackBox.className = 'rounded-2xl p-4 text-center border-2 font-bold text-lg flex items-center justify-center gap-3 bg-red-100 text-red-700 border-red-300';
+      feedbackIcon.className = 'fa-solid fa-face-sad-tear text-3xl animate-bounce-soft';
+      feedbackText.innerText = `โธ่! ตอบผิดครบ 3 ครั้ง โดนหัก 5 คะแนนเลย 😭`;
+      
+      explanationBox.classList.remove('hidden');
+      explanationText.innerHTML = `<span class="text-red-600 font-black">เฉลยคือ: ${q.answer}</span><br><br>${q.explanation}`;
+      
+      buttons.forEach(b => {
+        b.disabled = true;
+        b.classList.remove('cute-btn');
+        if (b.innerText.includes(q.answer)) {
+          b.className = 'w-full text-left bg-green-100 border-2 border-green-400 text-green-800 font-bold py-4 px-5 rounded-2xl text-base flex justify-between items-center';
+          b.innerHTML = `<span>${q.answer}</span> <i class="fa-solid fa-check-circle text-xl text-green-600"></i>`;
+        } else {
+          b.classList.add('opacity-40');
         }
+      });
+      setTimeout(() => { nextQuestion(); }, 5000);
+    } else {
+      feedbackContainer.classList.remove('hidden');
+      feedbackBox.className = 'rounded-2xl p-3 text-center border-2 font-bold text-base flex items-center justify-center gap-2 bg-yellow-50 text-yellow-700 border-yellow-200';
+      feedbackIcon.className = 'fa-solid fa-circle-exclamation text-2xl animate-wiggle';
+      feedbackText.innerText = `ยังไม่ใช่จ้า ลองดูใหม่นะ (เหลือให้เดาอีก ${3 - wrongAttempts} ครั้ง)`;
+      btnElement.disabled = true;
+      btnElement.classList.add('opacity-60', 'cursor-not-allowed');
+      btnElement.classList.remove('cute-btn');
+    }
+  }
+}
 
-        // ตรวจสอบสิทธิ์ว่าเป็น coco หรือไม่
-        function checkRoleAndRoute() {
-            if (playerName.toLowerCase() === 'coco') {
-                showScreen('screen-admin');
-                loadAdminData();
-            } else {
-                document.getElementById('ui-welcome-player').innerText = `ยินดีต้อนรับคุณ ${playerName} คนเก่ง! ✨`;
-                document.getElementById('ui-player-name-display').innerText = playerName;
-                showScreen('screen-start');
-            }
-        }
+function nextQuestion() {
+  isProcessing = false;
+  currentQIndex++;
+  wrongAttempts = 0;
+  if (currentQIndex < quizData.length) {
+    loadQuestion();
+  } else {
+    endGame();
+  }
+}
 
-        // ออกจากระบบ
-        function logout() {
-            localStorage.removeItem('playerName');
-            location.reload();
-        }
+// จบด่านและส่งคะแนนรวมไปบันทึกบนคลาวด์/Local ให้แอดมิน coco ดึงข้อมูลได้ถูกต้อง
+function endGame() {
+  document.getElementById('app').classList.add('animate-pulse-border');
+  document.getElementById('ui-final-score').innerText = score;
+  const msgElement = document.getElementById('ui-result-message');
 
-        // โหลดข้อมูลเข้าสู่ตารางของแอดมิน
-        async function loadAdminData() {
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center p-8 text-indigo-500 font-bold"><i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 block"></i> กำลังโหลดข้อมูลประวัติผู้เล่น...</td></tr>';
+  if (score > 80) {
+    msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูทำคะแนนด่านภาษีได้ดีมากๆ!';
+  } else if (score > 50) {
+    msgElement.innerHTML = '🌟 เก่งมากๆ เลยจ้า! 🌟<br>มีความรู้เรื่องภาษีที่ยอดเยี่ยมเลย';
+  } else {
+    msgElement.innerHTML = '💪 พยายามได้ดีมาก! 💪<br>ลองกลับไปฝึกฝนและศึกษาเพิ่มเติมได้น้า!';
+  }
 
-            // หน่วงเวลาเล็กน้อยให้ Firebase พร้อมทำงาน
-            setTimeout(async () => {
-                let data = null;
-                if (window.fetchAdminData) {
-                    data = await window.fetchAdminData();
-                }
+  // คำนวณคะแนนรวมสะสม
+  let currentGlobalScore = parseInt(localStorage.getItem('globalScore') || '0');
+  currentGlobalScore += score;
+  localStorage.setItem('globalScore', currentGlobalScore);
 
-                if (data && data.length > 0) {
-                    renderAdminTable(data);
-                } else {
-                    // Fallback แสดงข้อมูลในเครื่อง (Local) หากไม่มีเน็ตหรือต่อฐานข้อมูลไม่ได้
-                    const localData = JSON.parse(localStorage.getItem('localLeaderboard') || '[]');
-                    if(localData.length > 0) {
-                        localData.sort((a,b) => b.score - a.score);
-                        renderAdminTable(localData);
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="3" class="text-center p-6 text-slate-500 bg-slate-50 rounded-lg">ยังไม่มีประวัติการเล่นในระบบ</td></tr>';
-                    }
-                }
-            }, 1000);
-        }
+  // บันทึกสำรองลง LocalStorage สำหรับดึงมาแสดงผลในตารางของ coco
+  const localLeaderboard = JSON.parse(localStorage.getItem('localLeaderboard') || '[]');
+  localLeaderboard.push({
+    name: playerName,
+    score: currentGlobalScore,
+    date: new Date().toLocaleString('th-TH')
+  });
+  localStorage.setItem('localLeaderboard', JSON.stringify(localLeaderboard));
 
-        // เรนเดอร์ข้อมูลลงตาราง
-        function renderAdminTable(data) {
-            const tbody = document.getElementById('admin-table-body');
-            let html = '';
-            data.forEach(item => {
-                html += `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td class="p-3 font-semibold text-slate-700">${item.name}</td>
-                        <td class="p-3 text-center font-bold text-indigo-600 bg-indigo-50/50">${item.score}</td>
-                        <td class="p-3 text-right text-sm text-slate-500">${item.timestamp || item.date}</td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
+  // จุดที่แก้ไข: เปลี่ยนจากเซฟแค่คะแนนรอบนี้ (score) ให้เซฟคะแนนรวม (currentGlobalScore) ส่งขึ้นคลาวด์ไปยังหน้าแอดมิน
+  if (window.saveScoreToCloud) {
+    window.saveScoreToCloud(playerName, currentGlobalScore);
+  }
 
-        // ฟังก์ชันสลับหน้าจอ
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(el => {
-                el.classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        // ฟังก์ชันย้อนกลับไปยังเมนูหลัก
-        function goBackToMenu() {
-            window.location.href = 'index.html';
-        }
-
-        // เริ่มเล่นเกม
-        function startGame() {
-            currentQIndex = 0;
-            score = 0;
-            wrongAttempts = 0;
-            isProcessing = false;
-            
-            document.getElementById('app').classList.remove('animate-pulse-border'); 
-            showScreen('screen-game');
-            loadQuestion();
-        }
-
-        // โหลดคำถามปัจจุบันขึ้นหน้าจอ
-        function loadQuestion() {
-            const q = quizData[currentQIndex];
-            document.getElementById('ui-stage').innerText = `${currentQIndex + 1}/${quizData.length}`;
-            document.getElementById('ui-score').innerText = score;
-            document.getElementById('ui-question').innerText = q.question;
-            
-            // รีเซ็ตหัวใจนับการผิด
-            const heartsHtml = Array(3).fill(0).map((_, i) => {
-                if (i < 3 - wrongAttempts) {
-                    return `<i class="fa-solid fa-heart text-red-400 animate-pulse" style="animation-delay: ${i*0.2}s"></i>`;
-                } else {
-                    return `<i class="fa-regular fa-heart text-red-200"></i>`;
-                }
-            }).join('');
-            document.getElementById('ui-hearts').innerHTML = heartsHtml;
-
-            // ซ่อนกล่อง Feedback ข้อความตอบถูก/ผิด
-            document.getElementById('ui-feedback-container').classList.add('hidden');
-            document.getElementById('ui-explanation-box').classList.add('hidden');
-            
-            const optionsContainer = document.getElementById('ui-options');
-            optionsContainer.innerHTML = '';
-            
-            // สุ่มแสดงตัวเลือกและอนิเมชัน
-            q.options.forEach((opt, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'cute-btn w-full text-left bg-white border-2 border-pink-100 hover:border-pink-300 hover:bg-pink-50 text-slate-700 font-bold py-4 px-5 rounded-2xl shadow-sm text-base flex justify-between items-center transition-colors';
-                btn.style.animation = `popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards ${index * 0.1}s`;
-                btn.style.opacity = '0';
-                
-                const numBadge = `<span class="bg-pink-100 text-pink-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 font-black shrink-0 border border-pink-200">${index+1}</span>`;
-                
-                btn.innerHTML = `<div class="flex items-center">${numBadge} <span>${opt}</span></div>`;
-                btn.onclick = () => checkAnswer(opt, btn);
-                optionsContainer.appendChild(btn);
-            });
-            
-            const qBox = document.getElementById('question-box');
-            qBox.classList.remove('animate-pop-in');
-            void qBox.offsetWidth; 
-            qBox.classList.add('animate-pop-in');
-        }
-
-        // ตรวจสอบคำตอบเมื่อผู้เล่นคลิกตัวเลือก
-        function checkAnswer(selectedOption, btnElement) {
-            if (isProcessing) return; 
-            
-            const q = quizData[currentQIndex];
-            const isCorrect = selectedOption === q.answer;
-            const buttons = document.getElementById('ui-options').querySelectorAll('button');
-
-            const feedbackContainer = document.getElementById('ui-feedback-container');
-            const feedbackBox = document.getElementById('ui-feedback-box');
-            const feedbackIcon = document.getElementById('ui-feedback-icon');
-            const feedbackText = document.getElementById('ui-feedback-text');
-            const explanationBox = document.getElementById('ui-explanation-box');
-            const explanationText = document.getElementById('ui-explanation-text');
-
-            if (isCorrect) {
-                isProcessing = true;
-                
-                let pointsEarned = 0;
-                if (wrongAttempts === 0) pointsEarned = 10;
-                else if (wrongAttempts === 1) pointsEarned = 5;
-                else if (wrongAttempts === 2) pointsEarned = 2;
-                
-                score += pointsEarned;
-                document.getElementById('ui-score').innerText = score;
-                
-                btnElement.className = 'w-full text-left bg-green-500 border-2 border-green-600 text-white font-bold py-4 px-5 rounded-2xl shadow-md text-base flex justify-between items-center animate-bounce-soft';
-                btnElement.innerHTML = `<span>${selectedOption}</span> <i class="fa-solid fa-circle-check text-2xl text-white ml-2"></i>`;
-                
-                feedbackContainer.classList.remove('hidden');
-                feedbackBox.className = 'rounded-2xl p-4 text-center border-2 font-bold text-lg flex items-center justify-center gap-3 bg-green-100 text-green-700 border-green-300';
-                feedbackIcon.className = 'fa-solid fa-star text-3xl text-green-500 animate-wiggle';
-                feedbackText.innerText = `เก่งมากเลย! รับไป ${pointsEarned} คะแนน 🎉`;
-                
-                explanationBox.classList.remove('hidden');
-                explanationText.innerText = q.explanation;
-                
-                buttons.forEach(b => {
-                    b.disabled = true;
-                    if (b !== btnElement) b.classList.add('opacity-50', 'scale-95');
-                });
-
-                if(window.confetti) {
-                    confetti({
-                        particleCount: 40,
-                        spread: 60,
-                        origin: { y: 0.8 },
-                        colors: ['#f472b6', '#a78bfa', '#34d399']
-                    });
-                }
-
-                setTimeout(() => {
-                    nextQuestion();
-                }, 4000);
-
-            } else {
-                wrongAttempts++;
-                
-                btnElement.classList.add('animate-wiggle', 'bg-red-50', 'border-red-300', 'text-red-700');
-                setTimeout(() => btnElement.classList.remove('animate-wiggle'), 500);
-                
-                const heartsHtml = Array(3).fill(0).map((_, i) => {
-                    if (i < 3 - wrongAttempts) return `<i class="fa-solid fa-heart text-red-400 animate-pulse" style="animation-delay: ${i*0.2}s"></i>`;
-                    else return `<i class="fa-solid fa-heart-crack text-slate-300"></i>`;
-                }).join('');
-                document.getElementById('ui-hearts').innerHTML = heartsHtml;
-
-                if (wrongAttempts >= 3) {
-                    isProcessing = true;
-                    score -= 5; 
-                    document.getElementById('ui-score').innerText = score;
-                    
-                    feedbackContainer.classList.remove('hidden');
-                    feedbackBox.className = 'rounded-2xl p-4 text-center border-2 font-bold text-lg flex items-center justify-center gap-3 bg-red-100 text-red-700 border-red-300';
-                    feedbackIcon.className = 'fa-solid fa-face-sad-tear text-3xl animate-bounce-soft';
-                    feedbackText.innerText = `โธ่! ตอบผิดครบ 3 ครั้ง โดนหัก 5 คะแนนเลย 😭`;
-                    
-                    explanationBox.classList.remove('hidden');
-                    explanationText.innerHTML = `<span class="text-red-600 font-black">เฉลยคือ: ${q.answer}</span><br><br>${q.explanation}`;
-                    
-                    buttons.forEach(b => {
-                        b.disabled = true;
-                        b.classList.remove('cute-btn');
-                        if (b.innerText.includes(q.answer)) {
-                            b.className = 'w-full text-left bg-green-100 border-2 border-green-400 text-green-800 font-bold py-4 px-5 rounded-2xl text-base flex justify-between items-center';
-                            b.innerHTML = `<span>${q.answer}</span> <i class="fa-solid fa-check-circle text-xl text-green-600"></i>`;
-                        } else {
-                            b.classList.add('opacity-40');
-                        }
-                    });
-
-                    setTimeout(() => {
-                        nextQuestion();
-                    }, 5000);
-
-                } else {
-                    feedbackContainer.classList.remove('hidden');
-                    feedbackBox.className = 'rounded-2xl p-3 text-center border-2 font-bold text-base flex items-center justify-center gap-2 bg-yellow-50 text-yellow-700 border-yellow-200';
-                    feedbackIcon.className = 'fa-solid fa-circle-exclamation text-2xl animate-wiggle';
-                    feedbackText.innerText = `ยังไม่ใช่จ้า ลองดูใหม่นะ (เหลือให้เดาอีก ${3 - wrongAttempts} ครั้ง)`;
-                    
-                    btnElement.disabled = true;
-                    btnElement.classList.add('opacity-60', 'cursor-not-allowed');
-                    btnElement.classList.remove('cute-btn');
-                }
-            }
-        }
-
-        // ไปยังข้อถัดไปหรือจบเกม
-        function nextQuestion() {
-            isProcessing = false;
-            currentQIndex++;
-            wrongAttempts = 0;
-            
-            if (currentQIndex < quizData.length) {
-                loadQuestion();
-            } else {
-                endGame();
-            }
-        }
-
-        // จบการเล่นด่านที่ 1 และรวมคะแนนสะสมหลัก
-        function endGame() {
-            document.getElementById('app').classList.add('animate-pulse-border');
-            document.getElementById('ui-final-score').innerText = score;
-            
-            const msgElement = document.getElementById('ui-result-message');
-            if (score > 80) {
-                msgElement.innerHTML = '✨ โอ้โห! สุดยอดดดด! ✨<br>หนูทำคะแนนด่านภาษีได้ดีมากๆ!';
-            } else if (score > 50) {
-                msgElement.innerHTML = '🌟 เก่งมากๆ เลยจ้า! 🌟<br>มีความรู้เรื่องภาษีที่ยอดเยี่ยมเลย';
-            } else {
-                msgElement.innerHTML = '💪 พยายามได้ดีมาก! 💪<br>ลองกลับไปฝึกฝนและศึกษาเพิ่มเติมได้น้า!';
-            }
-            
-            // คำนวณคะแนนรวมในระบบสะสมแต้ม
-            let currentGlobalScore = parseInt(localStorage.getItem('globalScore') || '0');
-            currentGlobalScore += score;
-            localStorage.setItem('globalScore', currentGlobalScore);
-
-            // บันทึกข้อมูลสำรองไว้ในเครื่องสำหรับแสดงในหน้าแอดมินกรณีฐานข้อมูลหลักมีปัญหา
-            const localLeaderboard = JSON.parse(localStorage.getItem('localLeaderboard') || '[]');
-            localLeaderboard.push({
-                name: playerName,
-                score: currentGlobalScore, 
-                date: new Date().toLocaleString('th-TH')
-            });
-            localStorage.setItem('localLeaderboard', JSON.stringify(localLeaderboard));
-
-            // บันทึกคะแนนใหม่ขึ้นสู่คลาวด์เพื่อให้คะแนนอัปเดตบนตารางผู้นำ (Hall of Fame) ในหน้าหลัก
-            if (window.saveScoreToCloud) {
-                window.saveScoreToCloud(playerName, currentGlobalScore);
-            }
+  if(window.confetti) {
+    const duration = 3000;
+    const end = Date.now() + duration;
+    (function frame() {
+      confetti({particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047'] });
+      confetti({particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#fbcfe8', '#c084fc', '#60a5fa', '#fde047'] });
+      if (Date.now() < end) { requestAnimationFrame(frame); }
+    }());
+  }
+  showScreen('screen-result');
+}
 
             // เล่นเอฟเฟกต์จุดพลุฉลอง
             if(window.confetti) {
