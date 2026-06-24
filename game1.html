@@ -244,7 +244,7 @@
             localStorage.setItem('game1Score', score);
 
             const statusDiv = document.getElementById('sheet-status');
-            if (WEB_APP_URL === "https://script.google.com/macros/s/AKfycbxA-DOJ8IKmqfjkQvaNPP6K1eC8arjIeYJRZDfROyAm24egwHCaFDY3ziyq5RDpxFgVGQ/exec" || !WEB_APP_URL.includes("script.google.com")) {
+            if (WEB_APP_URL === "" || !WEB_APP_URL.includes("script.google.com")) {
                 statusDiv.className = "text-xs font-semibold text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-200 text-left leading-normal";
                 statusDiv.innerHTML = `❌ <strong>พบปัญหา:</strong> คุณครูยังไม่ได้ใส่ลิงก์ Web App URL ในโค้ดครับ`;
                 document.getElementById('send-score-btn').disabled = true;
