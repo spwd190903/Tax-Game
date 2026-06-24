@@ -254,7 +254,7 @@
             localStorage.setItem('game1Score', score);
 
             const statusDiv = document.getElementById('sheet-status');
-            if (WEB_APP_URL === "วางลิงก์ของคุณครูตรงนี้ครับ" || !WEB_APP_URL.includes("script.google.com")) {
+            if (WEB_APP_URL === "https://script.google.com/macros/s/AKfycbxA-DOJ8IKmqfjkQvaNPP6K1eC8arjIeYJRZDfROyAm24egwHCaFDY3ziyq5RDpxFgVGQ/exec" || !WEB_APP_URL.includes("script.google.com")) {
                 statusDiv.className = "text-xs font-semibold text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-200 text-left leading-normal";
                 statusDiv.innerHTML = `❌ <strong>พบปัญหา:</strong> คุณครูยังไม่ได้ใส่ลิงก์ Web App URL ในโค้ดครับ`;
                 document.getElementById('send-score-btn').disabled = true;
@@ -266,35 +266,29 @@
         }
 // 🌟 โค้ดปรับปรุงใหม่: ส่งคะแนนให้แอดมินเห็นทันทีเมื่อจบด่าน 1
         function finishLevel() {
-            // 1. คำนวณคะแนนใหม่
             let oldTotal = parseInt(localStorage.getItem('totalScore')) || 0;
-            let newTotal = oldTotal + score; // คะแนนด่านนี้ + คะแนนเดิม
-            let nextLevel = 2; // ด่านถัดไปคือด่าน 2
+            let newTotal = oldTotal + score; 
+            let nextLevel = 2; // จบด่าน 1 กำลังจะไปด่าน 2
 
-            // 2. บันทึกลงเครื่อง (localStorage)
             localStorage.setItem('totalScore', newTotal);
             localStorage.setItem('currentLevel', nextLevel); 
 
-            // 3. 🌐 ส่งข้อมูลไปที่ Google Sheets ทันทีเพื่อให้คุณครูเห็นบนหน้า Admin
-            // (อย่าลืมเปลี่ยนลิงก์ WEB_APP_URL ให้เป็นลิงก์ Web App ของคุณครูนะครับ)
-            const WEB_APP_URL = "วางลิงก์_Web_App_ของคุณครูตรงนี้ครับ"; 
+            // 🌟 เอาลิงก์ใหม่ที่ได้จากขั้นตอนที่ 1 มาแปะตรงนี้ครับ!
+            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxA-DOJ8IKmqfjkQvaNPP6K1eC8arjIeYJRZDfROyAm24egwHCaFDY3ziyq5RDpxFgVGQ/exec"; 
 
-            // ปรับปุ่มให้แสดงสถานะกำลังโหลด เพื่อป้องกันเด็กกดซ้ำๆ
             const btn = document.querySelector('button[onclick="finishLevel()"]');
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> กำลังบันทึกข้อมูลเข้าสู่ระบบแอดมิน...`;
             }
 
-            // ส่งข้อมูลชื่อ, ด่านล่าสุดที่จะไป, และคะแนนรวม ณ ตอนนี้ ไปที่ Google Sheets
+            // ส่งค่าไปหลังบ้าน
             fetch(`${WEB_APP_URL}?name=${encodeURIComponent(playerName)}&currentLevel=${nextLevel}&totalScore=${newTotal}`)
                 .then(response => {
-                    // เมื่อส่งข้อมูลสำเร็จ พานักเรียนกลับไปหน้าแผนที่ (hub.html)
                     window.location.href = "hub.html"; 
                 })
                 .catch(error => {
-                    console.error("เกิดข้อผิดพลาดในการส่งข้อมูลไปยัง Sheets:", error);
-                    // แม้เน็ตจะหลุดหรือส่งไม่สำเร็จ ก็ให้เด็กไปหน้า hub.html ได้ (เพราะคะแนนเซฟลงเครื่องเด็กแล้ว)
+                    console.error("Error:", error);
                     window.location.href = "hub.html"; 
                 });
         }
